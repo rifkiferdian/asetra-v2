@@ -253,6 +253,23 @@ document.querySelectorAll("[data-edit-store]").forEach((button) => {
   });
 });
 
+document.querySelectorAll("[data-edit-asset-org]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const dialog = document.getElementById(button.dataset.dialog);
+    const form = document.getElementById(button.dataset.form);
+    if (!dialog || !form) return;
+    form.action = button.dataset.action;
+    [...form.elements].forEach((field) => {
+      if (!field.name || field.name === "csrf_token") return;
+      const key = field.name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      if (Object.hasOwn(button.dataset, key)) field.value = button.dataset[key];
+    });
+    dialog.showModal();
+    document.documentElement.classList.add("overflow-hidden");
+    document.body.classList.add("overflow-hidden");
+  });
+});
+
 document.querySelectorAll("[data-edit-aspect]").forEach((button) => {
   button.addEventListener("click", () => {
     const dialog = document.getElementById("editAspectDialog");
@@ -638,7 +655,7 @@ document.querySelectorAll("form[data-confirm]").forEach((form) => {
   });
 });
 
-document.querySelectorAll("[data-edit-role], [data-edit-permission], [data-edit-user], [data-edit-store], [data-edit-aspect], [data-edit-criterion], [data-edit-rule], [data-edit-organization], [data-edit-employee], [data-edit-profile], [data-edit-assignment], [data-edit-reporting]").forEach((button) => {
+document.querySelectorAll("[data-edit-role], [data-edit-permission], [data-edit-user], [data-edit-store], [data-edit-asset-org], [data-edit-aspect], [data-edit-criterion], [data-edit-rule], [data-edit-organization], [data-edit-employee], [data-edit-profile], [data-edit-assignment], [data-edit-reporting]").forEach((button) => {
   button.title = "Edit";
 });
 

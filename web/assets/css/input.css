@@ -15,6 +15,25 @@ textarea {
   font-family: "Roboto", ui-sans-serif, system-ui, sans-serif;
 }
 
+.asset-org-input {
+  width: 100%;
+  margin-top: .5rem;
+  border: 1px solid var(--color-slate-200);
+  border-radius: .75rem;
+  background: white;
+  padding: .75rem 1rem;
+  color: var(--color-slate-700);
+  font-size: .875rem;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.asset-org-input:focus {
+  border-color: var(--color-orange-500);
+  box-shadow: 0 0 0 4px var(--color-orange-100);
+}
+
 /* Font Awesome uses font glyphs, so match the former SVG size utilities. */
 .fa-solid.size-2 { font-size: .5rem; }
 .fa-solid.size-4 { font-size: 1rem; }
@@ -55,6 +74,7 @@ textarea {
 [data-edit-permission],
 [data-edit-user],
 [data-edit-store],
+[data-edit-asset-org],
 [data-edit-aspect],
 [data-edit-criterion],
 [data-edit-rule],
@@ -81,6 +101,7 @@ form[data-confirm] > button {
 [data-edit-permission]::before,
 [data-edit-user]::before,
 [data-edit-store]::before,
+[data-edit-asset-org]::before,
 [data-edit-aspect]::before,
 [data-edit-criterion]::before,
 [data-edit-rule]::before,
@@ -107,6 +128,7 @@ form[data-confirm] > button::before {
 [data-edit-permission]::before,
 [data-edit-user]::before,
 [data-edit-store]::before,
+[data-edit-asset-org]::before,
 [data-edit-aspect]::before,
 [data-edit-criterion]::before,
 [data-edit-rule]::before,
@@ -126,6 +148,7 @@ form[data-confirm] > button::before {
 [data-edit-permission],
 [data-edit-user],
 [data-edit-store],
+[data-edit-asset-org],
 [data-edit-aspect],
 [data-edit-criterion],
 [data-edit-rule],
@@ -149,6 +172,7 @@ form[data-confirm] > button {
 [data-edit-permission]:hover,
 [data-edit-user]:hover,
 [data-edit-store]:hover,
+[data-edit-asset-org]:hover,
 [data-edit-aspect]:hover,
 [data-edit-criterion]:hover,
 [data-edit-rule]:hover,

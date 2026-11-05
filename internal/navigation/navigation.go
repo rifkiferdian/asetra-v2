@@ -35,6 +35,10 @@ type definition struct {
 
 var definitions = []definition{
 	{group: "Menu utama", key: "dashboard", label: "Dashboard", url: "/dashboard"},
+	{group: "Organisasi", parent: "asset-organization", key: "companies", label: "Company", url: "/organization/companies", permission: "companies.view"},
+	{group: "Organisasi", parent: "asset-organization", key: "branches", label: "Branch", url: "/organization/branches", permission: "branches.view"},
+	{group: "Organisasi", parent: "asset-organization", key: "asset-departments", label: "Department", url: "/organization/departments", permission: "asset_departments.view"},
+	{group: "Organisasi", parent: "asset-organization", key: "asset-locations", label: "Asset Location", url: "/organization/asset-locations", permission: "asset_locations.view"},
 	{group: "Master Data", parent: "master", key: "stores", label: "Store", url: "/master/stores", permission: "stores.view"},
 	{group: "Pengelolaan", parent: "access", key: "users", label: "User", url: "/settings/users", permission: "users.view"},
 	{group: "Pengelolaan", parent: "access", key: "roles", label: "Role", url: "/settings/roles", permission: "roles.view"},
@@ -121,6 +125,19 @@ func (s *Service) Menus(ctx context.Context, user auth.SessionUser, activePage s
 			open = open || item.Active
 		}
 		groups[index].Items = append(groups[index].Items, Item{Key: "master", Label: "Master Data", Open: open, Active: open, Children: masterItems})
+	}
+	if organizationItems := children["asset-organization"]; len(organizationItems) > 0 {
+		index, exists := indexes["Organisasi"]
+		if !exists {
+			index = len(groups)
+			indexes["Organisasi"] = index
+			groups = append(groups, Group{Label: "Organisasi"})
+		}
+		open := false
+		for _, item := range organizationItems {
+			open = open || item.Active
+		}
+		groups[index].Items = append(groups[index].Items, Item{Key: "asset-organization", Label: "Struktur Organisasi", Open: open, Active: open, Children: organizationItems})
 	}
 	return groups, nil
 }

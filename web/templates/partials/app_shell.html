@@ -11,6 +11,7 @@
       <button type="button" data-sidebar-toggle aria-expanded="{{if .Open}}true{{else}}false{{end}}" class="mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition {{if .Active}}bg-gradient-to-r from-orange-500 to-orange-600 font-bold text-white shadow-lg shadow-orange-200/70{{else}}font-medium text-slate-600 hover:bg-slate-50 hover:text-orange-600{{end}}">
         {{if eq .Key "access"}}<i class="fa-solid fa-shield size-5 shrink-0" aria-hidden="true"></i>{{end}}
         {{if eq .Key "master"}}<i class="fa-solid fa-store size-5 shrink-0" aria-hidden="true"></i>{{end}}
+        {{if eq .Key "asset-organization"}}<i class="fa-solid fa-sitemap size-5 shrink-0" aria-hidden="true"></i>{{end}}
         <span class="flex-1">{{.Label}}</span>
         <i data-sidebar-chevron class="fa-solid fa-chevron-down size-4 transition-transform {{if .Open}}rotate-180{{end}}" aria-hidden="true"></i>
       </button>
@@ -21,6 +22,10 @@
           {{if eq .Key "roles"}}<i class="fa-solid fa-user-shield w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
           {{if eq .Key "permissions"}}<i class="fa-solid fa-key w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
           {{if eq .Key "stores"}}<i class="fa-solid fa-store w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "companies"}}<i class="fa-solid fa-building w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "branches"}}<i class="fa-solid fa-code-branch w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-departments"}}<i class="fa-solid fa-people-group w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-locations"}}<i class="fa-solid fa-location-dot w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
           {{.Label}}
         </a>
         {{end}}

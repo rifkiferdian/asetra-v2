@@ -12,6 +12,7 @@ import (
 	"asetra/internal/assessmentcriterion"
 	"asetra/internal/assessmentreport"
 	"asetra/internal/assessmentrule"
+	"asetra/internal/assetorganization"
 	"asetra/internal/auth"
 	"asetra/internal/config"
 	"asetra/internal/dashboard"
@@ -97,6 +98,7 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		employeeHandler := employee.NewHandler(cfg.AppName, employee.NewService(employee.NewRepository(db)), navigationService)
 		assessmentHandler := traineeassessment.NewHandler(cfg.AppName, traineeassessment.NewService(traineeassessment.NewRepository(db)), navigationService)
 		assessmentReportHandler := assessmentreport.NewHandler(cfg.AppName, assessmentReportService, navigationService)
+		assetOrganizationHandler := assetorganization.NewHandler(cfg.AppName, assetorganization.NewService(assetorganization.NewRepository(db)), navigationService)
 		profileHandler := profile.NewHandler(cfg.AppName, profile.NewService(profile.NewRepository(db)), navigationService)
 		storeHandler := storeManagement.NewHandler(cfg.AppName, storeManagement.NewService(storeManagement.NewRepository(db)), navigationService)
 		sessionHandler := sessionmanagement.NewHandler(cfg.AppName, sessionmanagement.NewService(sessionmanagement.NewRepository(db)), navigationService)
@@ -131,6 +133,26 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		settings.POST("/permissions", auth.RequirePermission(db, "permissions.create"), accessHandler.CreatePermission)
 		settings.POST("/permissions/:id/update", auth.RequirePermission(db, "permissions.update"), accessHandler.UpdatePermission)
 		settings.POST("/permissions/:id/delete", auth.RequirePermission(db, "permissions.delete"), accessHandler.DeletePermission)
+		organizationRoutes := authorized.Group("/organization")
+		organizationRoutes.GET("/companies", auth.RequirePermission(db, "companies.view"), assetOrganizationHandler.Companies)
+		organizationRoutes.POST("/company-groups", auth.RequirePermission(db, "companies.create"), assetOrganizationHandler.CreateGroup)
+		organizationRoutes.POST("/company-groups/:id/update", auth.RequirePermission(db, "companies.update"), assetOrganizationHandler.UpdateGroup)
+		organizationRoutes.POST("/company-groups/:id/delete", auth.RequirePermission(db, "companies.delete"), assetOrganizationHandler.DeleteGroup)
+		organizationRoutes.POST("/companies", auth.RequirePermission(db, "companies.create"), assetOrganizationHandler.CreateCompany)
+		organizationRoutes.POST("/companies/:id/update", auth.RequirePermission(db, "companies.update"), assetOrganizationHandler.UpdateCompany)
+		organizationRoutes.POST("/companies/:id/delete", auth.RequirePermission(db, "companies.delete"), assetOrganizationHandler.DeleteCompany)
+		organizationRoutes.GET("/branches", auth.RequirePermission(db, "branches.view"), assetOrganizationHandler.Branches)
+		organizationRoutes.POST("/branches", auth.RequirePermission(db, "branches.create"), assetOrganizationHandler.CreateBranch)
+		organizationRoutes.POST("/branches/:id/update", auth.RequirePermission(db, "branches.update"), assetOrganizationHandler.UpdateBranch)
+		organizationRoutes.POST("/branches/:id/delete", auth.RequirePermission(db, "branches.delete"), assetOrganizationHandler.DeleteBranch)
+		organizationRoutes.GET("/departments", auth.RequirePermission(db, "asset_departments.view"), assetOrganizationHandler.Departments)
+		organizationRoutes.POST("/departments", auth.RequirePermission(db, "asset_departments.create"), assetOrganizationHandler.CreateDepartment)
+		organizationRoutes.POST("/departments/:id/update", auth.RequirePermission(db, "asset_departments.update"), assetOrganizationHandler.UpdateDepartment)
+		organizationRoutes.POST("/departments/:id/delete", auth.RequirePermission(db, "asset_departments.delete"), assetOrganizationHandler.DeleteDepartment)
+		organizationRoutes.GET("/asset-locations", auth.RequirePermission(db, "asset_locations.view"), assetOrganizationHandler.Locations)
+		organizationRoutes.POST("/asset-locations", auth.RequirePermission(db, "asset_locations.create"), assetOrganizationHandler.CreateLocation)
+		organizationRoutes.POST("/asset-locations/:id/update", auth.RequirePermission(db, "asset_locations.update"), assetOrganizationHandler.UpdateLocation)
+		organizationRoutes.POST("/asset-locations/:id/delete", auth.RequirePermission(db, "asset_locations.delete"), assetOrganizationHandler.DeleteLocation)
 		master := authorized.Group("/master")
 		master.GET("/stores", auth.RequirePermission(db, "stores.view"), storeHandler.Index)
 		master.POST("/stores", auth.RequirePermission(db, "stores.create"), storeHandler.Create)
