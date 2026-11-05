@@ -1,0 +1,17 @@
+{
+  "name": "asetra",
+  "private": true,
+  "scripts": {
+    "dev:css": "tailwindcss -i ./web/assets/css/input.css -o ./web/static/css/app.css --watch",
+    "build:css": "tailwindcss -i ./web/assets/css/input.css -o ./web/static/css/app.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.0",
+    "tailwindcss": "4.3.0"
+  },
+  "dependencies": {
+    "@fontsource/roboto": "^5.3.0",
+    "@fortawesome/fontawesome-free": "^7.3.1",
+    "sweetalert2": "^11.26.17"
+  }
+}
