@@ -8,26 +8,26 @@
     {{range .Items}}
     {{if .Children}}
     <div data-sidebar-parent>
-      <button type="button" data-sidebar-toggle aria-expanded="{{if .Open}}true{{else}}false{{end}}" class="mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition {{if .Active}}bg-orange-50 font-bold text-orange-700{{else}}font-medium text-slate-600 hover:bg-slate-50 hover:text-orange-600{{end}}">
+      <button type="button" data-sidebar-toggle aria-expanded="{{if .Open}}true{{else}}false{{end}}" class="mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition {{if .Active}}bg-gradient-to-r from-orange-500 to-orange-600 font-bold text-white shadow-lg shadow-orange-200/70{{else}}font-medium text-slate-600 hover:bg-slate-50 hover:text-orange-600{{end}}">
         {{if eq .Key "access"}}<i class="fa-solid fa-shield size-5 shrink-0" aria-hidden="true"></i>{{end}}
         {{if eq .Key "master"}}<i class="fa-solid fa-store size-5 shrink-0" aria-hidden="true"></i>{{end}}
         <span class="flex-1">{{.Label}}</span>
         <i data-sidebar-chevron class="fa-solid fa-chevron-down size-4 transition-transform {{if .Open}}rotate-180{{end}}" aria-hidden="true"></i>
       </button>
-      <div data-sidebar-submenu class="mb-2 ml-5 space-y-1 border-l border-slate-200 pl-3 {{if not .Open}}hidden{{end}}">
+      <div data-sidebar-submenu class="mb-2 ml-5 space-y-0.5 border-l border-slate-200 pl-3 {{if not .Open}}hidden{{end}}">
         {{range .Children}}
-        <a href="{{.URL}}" {{if .Active}}aria-current="page"{{end}} class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition {{if .Active}}bg-orange-50 font-bold text-orange-700{{else}}font-medium text-slate-600 hover:bg-slate-50 hover:text-orange-600{{end}}">
-          {{if eq .Key "users"}}<i class="fa-solid fa-user-plus size-5 shrink-0" aria-hidden="true"></i>{{end}}
-          {{if eq .Key "roles"}}<i class="fa-solid fa-user-shield size-5 shrink-0" aria-hidden="true"></i>{{end}}
-          {{if eq .Key "permissions"}}<i class="fa-solid fa-key size-5 shrink-0" aria-hidden="true"></i>{{end}}
-          {{if eq .Key "stores"}}<i class="fa-solid fa-store size-5 shrink-0" aria-hidden="true"></i>{{end}}
+        <a href="{{.URL}}" {{if .Active}}aria-current="page"{{end}} class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition {{if .Active}}bg-orange-50 font-bold text-orange-600{{else}}font-medium text-slate-600 hover:bg-slate-50 hover:text-orange-600{{end}}">
+          {{if eq .Key "users"}}<i class="fa-solid fa-user-plus w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "roles"}}<i class="fa-solid fa-user-shield w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "permissions"}}<i class="fa-solid fa-key w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "stores"}}<i class="fa-solid fa-store w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
           {{.Label}}
         </a>
         {{end}}
       </div>
     </div>
     {{else}}
-    <a href="{{.URL}}" {{if .Active}}aria-current="page"{{end}} class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition {{if .Active}}bg-orange-50 font-bold text-orange-700{{else}}font-medium text-slate-600 hover:bg-slate-50 hover:text-orange-600{{end}}">
+    <a href="{{.URL}}" {{if .Active}}aria-current="page"{{end}} class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition {{if .Active}}bg-gradient-to-r from-orange-500 to-orange-600 font-bold text-white shadow-lg shadow-orange-200/70{{else}}font-medium text-slate-600 hover:bg-slate-50 hover:text-orange-600{{end}}">
       {{if eq .Key "dashboard"}}<i class="fa-solid fa-table-cells-large size-5" aria-hidden="true"></i>{{end}}
       {{if eq .Key "users"}}<i class="fa-solid fa-user-plus size-5" aria-hidden="true"></i>{{end}}
       {{if eq .Key "roles"}}<i class="fa-solid fa-user-shield size-5" aria-hidden="true"></i>{{end}}
@@ -53,7 +53,7 @@
     <button id="openSidebar" type="button" class="grid size-9 shrink-0 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 lg:hidden" aria-label="Buka menu"><i class="fa-solid fa-bars size-5" aria-hidden="true"></i></button>
     <p class="truncate text-xs text-slate-400">{{.Section}} <span class="mx-2">/</span> <strong class="font-semibold text-slate-700">{{.Title}}</strong></p>
   </div>
-  <div class="flex shrink-0 items-center gap-1 sm:gap-2">
+  <div class="mr-1 flex shrink-0 items-center gap-1 sm:mr-3 sm:gap-2 lg:mr-4">
     <button type="button" data-demo-action="Pusat bantuan akan tersedia pada tahap berikutnya." class="grid size-11 place-items-center rounded-xl text-slate-500 transition hover:bg-orange-50 hover:text-orange-600" aria-label="Bantuan">
       <i class="fa-solid fa-circle-question size-[22px]" aria-hidden="true"></i>
     </button>
@@ -65,17 +65,17 @@
       <div data-notification-menu class="absolute right-0 top-[calc(100%+0.6rem)] z-50 hidden w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15 group-open:block">
         <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3.5"><div><h3 class="text-sm font-bold text-slate-900">Notifikasi</h3><p class="mt-0.5 text-[10px] text-slate-400">Aktivitas terbaru sistem</p></div><button type="button" data-notification-read-all class="rounded-lg px-2.5 py-2 text-[10px] font-bold text-orange-600 hover:bg-orange-50">Tandai dibaca</button></div>
         <div class="max-h-[22rem] overflow-y-auto">
-          <a href="/assessments" class="flex gap-3 border-b border-slate-100 bg-orange-50/50 px-4 py-3.5 transition hover:bg-orange-50"><span class="grid size-10 shrink-0 place-items-center rounded-xl bg-orange-100 text-orange-600"><i class="fa-solid fa-clipboard-check size-5" aria-hidden="true"></i></span><span class="min-w-0 flex-1"><span class="flex items-start justify-between gap-3"><strong class="text-xs text-slate-800">Penilaian baru diajukan</strong><i data-notification-dot class="mt-1 size-2 shrink-0 rounded-full bg-orange-500"></i></span><small class="mt-1 block text-[11px] leading-4 text-slate-500">Hasil penilaian trainee siap ditinjau.</small><time class="mt-1.5 block text-[9px] font-medium text-slate-400">5 menit lalu</time></span></a>
-          <a href="/reports/trainee-assessments" class="flex gap-3 border-b border-slate-100 bg-orange-50/50 px-4 py-3.5 transition hover:bg-orange-50"><span class="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-600"><i class="fa-solid fa-trophy size-5" aria-hidden="true"></i></span><span class="min-w-0 flex-1"><span class="flex items-start justify-between gap-3"><strong class="text-xs text-slate-800">Performa trainee meningkat</strong><i data-notification-dot class="mt-1 size-2 shrink-0 rounded-full bg-orange-500"></i></span><small class="mt-1 block text-[11px] leading-4 text-slate-500">Lihat rangkuman pencapaian terbaru pada laporan.</small><time class="mt-1.5 block text-[9px] font-medium text-slate-400">18 menit lalu</time></span></a>
-          <a href="/assessments/new" class="flex gap-3 border-b border-slate-100 bg-orange-50/50 px-4 py-3.5 transition hover:bg-orange-50"><span class="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-600"><i class="fa-solid fa-clock size-5" aria-hidden="true"></i></span><span class="min-w-0 flex-1"><span class="flex items-start justify-between gap-3"><strong class="text-xs text-slate-800">Lengkapi penilaian trainee</strong><i data-notification-dot class="mt-1 size-2 shrink-0 rounded-full bg-orange-500"></i></span><small class="mt-1 block text-[11px] leading-4 text-slate-500">Pastikan penilaian bulan berjalan sudah tercatat.</small><time class="mt-1.5 block text-[9px] font-medium text-slate-400">1 jam lalu</time></span></a>
-          <div class="flex gap-3 px-4 py-3.5"><span class="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="fa-solid fa-circle-check size-5" aria-hidden="true"></i></span><span class="min-w-0 flex-1"><strong class="text-xs text-slate-800">Data penilaian tersinkron</strong><small class="mt-1 block text-[11px] leading-4 text-slate-500">Ringkasan dashboard menggunakan data terbaru.</small><time class="mt-1.5 block text-[9px] font-medium text-slate-400">Kemarin</time></span></div>
+          <a href="/dashboard" class="flex gap-3 border-b border-slate-100 bg-orange-50/50 px-4 py-3.5 transition hover:bg-orange-50"><span class="grid size-10 shrink-0 place-items-center rounded-xl bg-orange-100 text-orange-600"><i class="fa-solid fa-box-open size-5" aria-hidden="true"></i></span><span class="min-w-0 flex-1"><span class="flex items-start justify-between gap-3"><strong class="text-xs text-slate-800">Aset baru ditambahkan</strong><i data-notification-dot class="mt-1 size-2 shrink-0 rounded-full bg-orange-500"></i></span><small class="mt-1 block text-[11px] leading-4 text-slate-500">MacBook Pro 14 telah masuk ke inventaris.</small><time class="mt-1.5 block text-[9px] font-medium text-slate-400">5 menit lalu</time></span></a>
+          <a href="/dashboard" class="flex gap-3 border-b border-slate-100 bg-orange-50/50 px-4 py-3.5 transition hover:bg-orange-50"><span class="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-600"><i class="fa-solid fa-screwdriver-wrench size-5" aria-hidden="true"></i></span><span class="min-w-0 flex-1"><span class="flex items-start justify-between gap-3"><strong class="text-xs text-slate-800">Jadwal servis mendekat</strong><i data-notification-dot class="mt-1 size-2 shrink-0 rounded-full bg-orange-500"></i></span><small class="mt-1 block text-[11px] leading-4 text-slate-500">Kendaraan operasional perlu diservis besok.</small><time class="mt-1.5 block text-[9px] font-medium text-slate-400">18 menit lalu</time></span></a>
+          <a href="/dashboard" class="flex gap-3 border-b border-slate-100 bg-orange-50/50 px-4 py-3.5 transition hover:bg-orange-50"><span class="grid size-10 shrink-0 place-items-center rounded-xl bg-red-100 text-red-600"><i class="fa-solid fa-triangle-exclamation size-5" aria-hidden="true"></i></span><span class="min-w-0 flex-1"><span class="flex items-start justify-between gap-3"><strong class="text-xs text-slate-800">Aset perlu ditinjau</strong><i data-notification-dot class="mt-1 size-2 shrink-0 rounded-full bg-orange-500"></i></span><small class="mt-1 block text-[11px] leading-4 text-slate-500">6 aset dalam perbaikan memerlukan tindak lanjut.</small><time class="mt-1.5 block text-[9px] font-medium text-slate-400">1 jam lalu</time></span></a>
+          <div class="flex gap-3 px-4 py-3.5"><span class="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="fa-solid fa-circle-check size-5" aria-hidden="true"></i></span><span class="min-w-0 flex-1"><strong class="text-xs text-slate-800">Data aset tersinkron</strong><small class="mt-1 block text-[11px] leading-4 text-slate-500">Ringkasan inventaris menggunakan data terbaru.</small><time class="mt-1.5 block text-[9px] font-medium text-slate-400">Kemarin</time></span></div>
         </div>
         <button type="button" data-demo-action="Halaman semua notifikasi akan tersedia setelah data notifikasi terhubung." class="w-full border-t border-slate-100 px-4 py-3 text-center text-xs font-bold text-orange-600 hover:bg-orange-50">Lihat semua notifikasi</button>
       </div>
     </details>
     <span class="mx-1 h-8 w-px bg-slate-200 sm:mx-2" aria-hidden="true"></span>
     <div class="relative">
-      <button type="button" data-profile-menu-button aria-expanded="false" class="flex items-center gap-2 rounded-xl p-1.5 text-left transition hover:bg-slate-50 sm:pr-3">
+      <button type="button" data-profile-menu-button aria-expanded="false" class="flex cursor-pointer items-center gap-2 rounded-xl p-1.5 text-left transition hover:bg-slate-50 sm:pr-3">
         <span class="grid size-10 place-items-center rounded-full bg-orange-100 text-xs font-bold text-orange-700">{{.UserInitials}}</span>
         <span class="hidden max-w-44 sm:block"><strong class="block truncate text-sm text-slate-800">{{.UserName}}</strong><small class="mt-0.5 block truncate text-[11px] capitalize text-slate-400">{{.RoleName}}</small></span>
       </button>
