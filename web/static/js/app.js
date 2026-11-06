@@ -264,10 +264,80 @@ document.querySelectorAll("[data-edit-asset-org]").forEach((button) => {
       const key = field.name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
       if (Object.hasOwn(button.dataset, key)) field.value = button.dataset[key];
     });
+    form.elements.group_id?.dispatchEvent(new Event("change"));
+    form.elements.parent_id?.dispatchEvent(new Event("change"));
     dialog.showModal();
     document.documentElement.classList.add("overflow-hidden");
     document.body.classList.add("overflow-hidden");
   });
+});
+
+document.querySelectorAll("#createAssetMasterDialog form, #editAssetMasterDialog form").forEach((form) => {
+  const group = form.elements.group_id;
+  const filterRelations = () => {
+    const relationGroup = group?.value || form.elements.parent_id?.selectedOptions[0]?.dataset.groupId || "";
+    [form.elements.parent_id, form.elements.brand_id].filter(Boolean).forEach((select) => {
+      const selected = select.value;
+      [...select.options].forEach((option) => {
+        const visible = select === form.elements.parent_id && !group
+          ? true
+          : !option.dataset.groupId || option.dataset.groupId === relationGroup;
+        option.hidden = !visible;
+        option.disabled = !visible;
+      });
+      if (select.selectedOptions[0]?.disabled) select.value = select.name === "brand_id" ? "0" : "";
+      else select.value = selected;
+    });
+  };
+  group?.addEventListener("change", filterRelations);
+  form.elements.parent_id?.addEventListener("change", filterRelations);
+  filterRelations();
+});
+
+document.querySelectorAll("[data-edit-support]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const dialog = document.getElementById(button.dataset.dialog);
+    const form = document.getElementById(button.dataset.form);
+    if (!dialog || !form) return;
+    form.action = button.dataset.action;
+    [...form.elements].forEach((field) => {
+      if (!field.name || field.name === "csrf_token") return;
+      const camel = field.name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      const compact = field.name.replaceAll("_", "").toLowerCase();
+      const value = button.dataset[camel] ?? button.dataset[compact];
+      if (value !== undefined) field.value = value;
+    });
+    ["company_group_id", "company_id"].forEach((name) => form.elements[name]?.dispatchEvent(new Event("change")));
+    dialog.showModal();
+    document.documentElement.classList.add("overflow-hidden");
+    document.body.classList.add("overflow-hidden");
+  });
+});
+
+document.querySelectorAll("#createSupportDialog form, #editSupportDialog form").forEach((form) => {
+  const filterSelect = (select, dataKey, value, zero = false) => {
+    if (!select) return;
+    [...select.options].forEach((option) => {
+      const visible = !option.dataset[dataKey] || option.dataset[dataKey] === value;
+      option.hidden = !visible;
+      option.disabled = !visible;
+    });
+    if (select.selectedOptions[0]?.disabled) select.value = zero ? "0" : "";
+  };
+  const updateGroup = () => {
+    const groupID = form.elements.company_group_id?.value ?? form.elements.company_id?.selectedOptions[0]?.dataset.groupId ?? "";
+    filterSelect(form.elements.company_id, "groupId", groupID, true);
+    filterSelect(form.elements.asset_type_id, "groupId", groupID);
+    filterSelect(form.elements.accounting_group_id, "groupId", groupID);
+  };
+  const updateCompany = () => {
+    const companyID = form.elements.company_id?.value ?? "";
+    [form.elements.parent_id, form.elements.asset_gl_id, form.elements.accumulated_gl_id, form.elements.expense_gl_id].forEach((select) => filterSelect(select, "companyId", companyID, select?.name !== "asset_gl_id"));
+    updateGroup();
+  };
+  form.elements.company_group_id?.addEventListener("change", updateGroup);
+  form.elements.company_id?.addEventListener("change", updateCompany);
+  updateCompany();
 });
 
 document.querySelectorAll("[data-edit-aspect]").forEach((button) => {
@@ -655,7 +725,7 @@ document.querySelectorAll("form[data-confirm]").forEach((form) => {
   });
 });
 
-document.querySelectorAll("[data-edit-role], [data-edit-permission], [data-edit-user], [data-edit-store], [data-edit-asset-org], [data-edit-aspect], [data-edit-criterion], [data-edit-rule], [data-edit-organization], [data-edit-employee], [data-edit-profile], [data-edit-assignment], [data-edit-reporting]").forEach((button) => {
+document.querySelectorAll("[data-edit-role], [data-edit-permission], [data-edit-user], [data-edit-store], [data-edit-asset-org], [data-edit-support], [data-edit-aspect], [data-edit-criterion], [data-edit-rule], [data-edit-organization], [data-edit-employee], [data-edit-profile], [data-edit-assignment], [data-edit-reporting]").forEach((button) => {
   button.title = "Edit";
 });
 

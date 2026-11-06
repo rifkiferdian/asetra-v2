@@ -40,6 +40,19 @@ var definitions = []definition{
 	{group: "Organisasi", parent: "asset-organization", key: "asset-departments", label: "Department", url: "/organization/departments", permission: "asset_departments.view"},
 	{group: "Organisasi", parent: "asset-organization", key: "asset-locations", label: "Asset Location", url: "/organization/asset-locations", permission: "asset_locations.view"},
 	{group: "Master Data", parent: "master", key: "stores", label: "Store", url: "/master/stores", permission: "stores.view"},
+	{group: "Master Data", parent: "asset-master", key: "asset-categories", label: "Asset Category", url: "/master/assets/categories", permission: "asset_categories.view"},
+	{group: "Master Data", parent: "asset-master", key: "asset-types", label: "Asset Type", url: "/master/assets/types", permission: "asset_types.view"},
+	{group: "Master Data", parent: "asset-master", key: "asset-brands", label: "Asset Brand", url: "/master/assets/brands", permission: "asset_brands.view"},
+	{group: "Master Data", parent: "asset-master", key: "asset-models", label: "Asset Model", url: "/master/assets/models", permission: "asset_models.view"},
+	{group: "Master Data", parent: "asset-master", key: "asset-variants", label: "Asset Variant", url: "/master/assets/variants", permission: "asset_variants.view"},
+	{group: "Master Data", parent: "operational-master", key: "asset-conditions", label: "Kondisi Aset", url: "/master/support/conditions", permission: "asset_conditions.view"},
+	{group: "Master Data", parent: "operational-master", key: "asset-statuses", label: "Status Aset", url: "/master/support/statuses", permission: "asset_statuses.view"},
+	{group: "Master Data", parent: "operational-master", key: "vendors", label: "Vendor", url: "/master/support/vendors", permission: "vendors.view"},
+	{group: "Master Data", parent: "accounting-master", key: "depreciation-methods", label: "Metode Penyusutan", url: "/master/support/depreciation-methods", permission: "depreciation_methods.view"},
+	{group: "Master Data", parent: "accounting-master", key: "depreciation-policies", label: "Kebijakan Penyusutan", url: "/master/support/depreciation-policies", permission: "asset_depreciation_policies.view"},
+	{group: "Master Data", parent: "accounting-master", key: "gl-accounts", label: "Chart of Accounts (GL)", url: "/master/support/gl-accounts", permission: "gl_accounts.view"},
+	{group: "Master Data", parent: "accounting-master", key: "asset-accounting-groups", label: "Kelompok Accounting Aset", url: "/master/support/accounting-groups", permission: "asset_accounting_groups.view"},
+	{group: "Master Data", parent: "accounting-master", key: "asset-accounting-mappings", label: "Mapping Akun Accounting", url: "/master/support/accounting-mappings", permission: "asset_accounting_mappings.view"},
 	{group: "Pengelolaan", parent: "access", key: "users", label: "User", url: "/settings/users", permission: "users.view"},
 	{group: "Pengelolaan", parent: "access", key: "roles", label: "Role", url: "/settings/roles", permission: "roles.view"},
 	{group: "Pengelolaan", parent: "access", key: "permissions", label: "Permission", url: "/settings/permissions", permission: "permissions.view"},
@@ -138,6 +151,36 @@ func (s *Service) Menus(ctx context.Context, user auth.SessionUser, activePage s
 			open = open || item.Active
 		}
 		groups[index].Items = append(groups[index].Items, Item{Key: "asset-organization", Label: "Struktur Organisasi", Open: open, Active: open, Children: organizationItems})
+	}
+	if assetMasterItems := children["asset-master"]; len(assetMasterItems) > 0 {
+		index, exists := indexes["Master Data"]
+		if !exists {
+			index = len(groups)
+			indexes["Master Data"] = index
+			groups = append(groups, Group{Label: "Master Data"})
+		}
+		open := false
+		for _, item := range assetMasterItems {
+			open = open || item.Active
+		}
+		groups[index].Items = append(groups[index].Items, Item{Key: "asset-master", Label: "Master Data Asset", Open: open, Active: open, Children: assetMasterItems})
+	}
+	for _, parent := range []struct{ Key, Label string }{{"operational-master", "Master Operasional"}, {"accounting-master", "Master Accounting"}} {
+		items := children[parent.Key]
+		if len(items) == 0 {
+			continue
+		}
+		index, exists := indexes["Master Data"]
+		if !exists {
+			index = len(groups)
+			indexes["Master Data"] = index
+			groups = append(groups, Group{Label: "Master Data"})
+		}
+		open := false
+		for _, item := range items {
+			open = open || item.Active
+		}
+		groups[index].Items = append(groups[index].Items, Item{Key: parent.Key, Label: parent.Label, Open: open, Active: open, Children: items})
 	}
 	return groups, nil
 }

@@ -12,6 +12,7 @@ import (
 	"asetra/internal/assessmentcriterion"
 	"asetra/internal/assessmentreport"
 	"asetra/internal/assessmentrule"
+	"asetra/internal/assetmaster"
 	"asetra/internal/assetorganization"
 	"asetra/internal/auth"
 	"asetra/internal/config"
@@ -23,6 +24,7 @@ import (
 	"asetra/internal/profile"
 	"asetra/internal/sessionmanagement"
 	storeManagement "asetra/internal/store"
+	"asetra/internal/supportmaster"
 	"asetra/internal/traineeassessment"
 	userManagement "asetra/internal/user"
 	"asetra/internal/view"
@@ -99,6 +101,8 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		assessmentHandler := traineeassessment.NewHandler(cfg.AppName, traineeassessment.NewService(traineeassessment.NewRepository(db)), navigationService)
 		assessmentReportHandler := assessmentreport.NewHandler(cfg.AppName, assessmentReportService, navigationService)
 		assetOrganizationHandler := assetorganization.NewHandler(cfg.AppName, assetorganization.NewService(assetorganization.NewRepository(db)), navigationService)
+		assetMasterHandler := assetmaster.NewHandler(cfg.AppName, assetmaster.NewService(assetmaster.NewRepository(db)), navigationService)
+		supportMasterHandler := supportmaster.NewHandler(cfg.AppName, supportmaster.NewService(supportmaster.NewRepository(db)), navigationService)
 		profileHandler := profile.NewHandler(cfg.AppName, profile.NewService(profile.NewRepository(db)), navigationService)
 		storeHandler := storeManagement.NewHandler(cfg.AppName, storeManagement.NewService(storeManagement.NewRepository(db)), navigationService)
 		sessionHandler := sessionmanagement.NewHandler(cfg.AppName, sessionmanagement.NewService(sessionmanagement.NewRepository(db)), navigationService)
@@ -158,6 +162,26 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		master.POST("/stores", auth.RequirePermission(db, "stores.create"), storeHandler.Create)
 		master.POST("/stores/:id/update", auth.RequirePermission(db, "stores.update"), storeHandler.Update)
 		master.POST("/stores/:id/delete", auth.RequirePermission(db, "stores.delete"), storeHandler.Delete)
+		for _, assetMaster := range []struct{ kind, permission string }{{"categories", "asset_categories"}, {"types", "asset_types"}, {"brands", "asset_brands"}, {"models", "asset_models"}, {"variants", "asset_variants"}} {
+			kind, permission := assetMaster.kind, assetMaster.permission
+			withKind := func(handler gin.HandlerFunc) gin.HandlerFunc {
+				return func(c *gin.Context) { c.Set("assetMasterKind", kind); handler(c) }
+			}
+			master.GET("/assets/"+kind, auth.RequirePermission(db, permission+".view"), withKind(assetMasterHandler.Index))
+			master.POST("/assets/"+kind, auth.RequirePermission(db, permission+".create"), withKind(assetMasterHandler.Create))
+			master.POST("/assets/"+kind+"/:id/update", auth.RequirePermission(db, permission+".update"), withKind(assetMasterHandler.Update))
+			master.POST("/assets/"+kind+"/:id/delete", auth.RequirePermission(db, permission+".delete"), withKind(assetMasterHandler.Delete))
+		}
+		for _, support := range []struct{ kind, permission string }{{"conditions", "asset_conditions"}, {"statuses", "asset_statuses"}, {"vendors", "vendors"}, {"depreciation-methods", "depreciation_methods"}, {"depreciation-policies", "asset_depreciation_policies"}, {"gl-accounts", "gl_accounts"}, {"accounting-groups", "asset_accounting_groups"}, {"accounting-mappings", "asset_accounting_mappings"}} {
+			kind, permission := support.kind, support.permission
+			withKind := func(handler gin.HandlerFunc) gin.HandlerFunc {
+				return func(c *gin.Context) { c.Set("supportMasterKind", kind); handler(c) }
+			}
+			master.GET("/support/"+kind, auth.RequirePermission(db, permission+".view"), withKind(supportMasterHandler.Index))
+			master.POST("/support/"+kind, auth.RequirePermission(db, permission+".create"), withKind(supportMasterHandler.Create))
+			master.POST("/support/"+kind+"/:id/update", auth.RequirePermission(db, permission+".update"), withKind(supportMasterHandler.Update))
+			master.POST("/support/"+kind+"/:id/delete", auth.RequirePermission(db, permission+".delete"), withKind(supportMasterHandler.Delete))
+		}
 		master.GET("/assessment-aspects", auth.RequirePermission(db, "assessment_aspects.view"), assessmentAspectHandler.Index)
 		master.POST("/assessment-aspects", auth.RequirePermission(db, "assessment_aspects.create"), assessmentAspectHandler.Create)
 		master.POST("/assessment-aspects/:id/update", auth.RequirePermission(db, "assessment_aspects.update"), assessmentAspectHandler.Update)

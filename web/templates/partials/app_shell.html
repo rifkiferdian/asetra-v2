@@ -4,7 +4,7 @@
   <div class="flex items-center justify-between px-2 pb-7"><a href="/dashboard" class="flex items-center gap-3"><span class="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-lg shadow-orange-200"><i class="fa-solid fa-boxes-stacked size-6" aria-hidden="true"></i></span><span><strong class="block text-sm tracking-wide">Asetra</strong><small class="mt-0.5 block text-[11px] text-slate-400">Asset Management</small></span></a><button id="closeSidebar" type="button" class="grid size-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 lg:hidden" aria-label="Tutup menu"><i class="fa-solid fa-xmark size-5" aria-hidden="true"></i></button></div>
   <nav class="app-sidebar-nav flex-1 overflow-y-auto" aria-label="Navigasi aplikasi">
     {{range .Menus}}
-    <p class="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 first:mt-0">{{.Label}}</p>
+    {{if eq .Label "Menu utama"}}<p class="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 first:mt-0">{{.Label}}</p>{{end}}
     {{range .Items}}
     {{if .Children}}
     <div data-sidebar-parent>
@@ -12,6 +12,9 @@
         {{if eq .Key "access"}}<i class="fa-solid fa-shield size-5 shrink-0" aria-hidden="true"></i>{{end}}
         {{if eq .Key "master"}}<i class="fa-solid fa-store size-5 shrink-0" aria-hidden="true"></i>{{end}}
         {{if eq .Key "asset-organization"}}<i class="fa-solid fa-sitemap size-5 shrink-0" aria-hidden="true"></i>{{end}}
+        {{if eq .Key "asset-master"}}<i class="fa-solid fa-cubes size-5 shrink-0" aria-hidden="true"></i>{{end}}
+        {{if eq .Key "operational-master"}}<i class="fa-solid fa-screwdriver-wrench size-5 shrink-0" aria-hidden="true"></i>{{end}}
+        {{if eq .Key "accounting-master"}}<i class="fa-solid fa-calculator size-5 shrink-0" aria-hidden="true"></i>{{end}}
         <span class="flex-1">{{.Label}}</span>
         <i data-sidebar-chevron class="fa-solid fa-chevron-down size-4 transition-transform {{if .Open}}rotate-180{{end}}" aria-hidden="true"></i>
       </button>
@@ -26,6 +29,19 @@
           {{if eq .Key "branches"}}<i class="fa-solid fa-code-branch w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
           {{if eq .Key "asset-departments"}}<i class="fa-solid fa-people-group w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
           {{if eq .Key "asset-locations"}}<i class="fa-solid fa-location-dot w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-categories"}}<i class="fa-solid fa-layer-group w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-types"}}<i class="fa-solid fa-shapes w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-brands"}}<i class="fa-solid fa-copyright w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-models"}}<i class="fa-solid fa-cube w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-variants"}}<i class="fa-solid fa-code-branch w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-conditions"}}<i class="fa-solid fa-clipboard-check w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-statuses"}}<i class="fa-solid fa-tags w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "vendors"}}<i class="fa-solid fa-truck-field w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "depreciation-methods"}}<i class="fa-solid fa-chart-line w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "depreciation-policies"}}<i class="fa-solid fa-file-contract w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "gl-accounts"}}<i class="fa-solid fa-book w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-accounting-groups"}}<i class="fa-solid fa-folder-tree w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
+          {{if eq .Key "asset-accounting-mappings"}}<i class="fa-solid fa-right-left w-3.5 shrink-0 text-center text-xs" aria-hidden="true"></i>{{end}}
           {{.Label}}
         </a>
         {{end}}
