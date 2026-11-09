@@ -42,28 +42,31 @@ SET @method_sl = (SELECT id FROM depreciation_methods WHERE code='SL' LIMIT 1);
 SET @type_1 = (SELECT t.id FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id WHERE c.group_id=@group_id ORDER BY t.id LIMIT 1 OFFSET 0);
 SET @type_2 = (SELECT t.id FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id WHERE c.group_id=@group_id ORDER BY t.id LIMIT 1 OFFSET 1);
 SET @type_3 = (SELECT t.id FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id WHERE c.group_id=@group_id ORDER BY t.id LIMIT 1 OFFSET 2);
+SET @rate_4y = (SELECT id FROM depreciation_rates WHERE useful_life_months=48 LIMIT 1);
+SET @rate_5y = (SELECT id FROM depreciation_rates WHERE useful_life_months=60 LIMIT 1);
+SET @rate_8y = (SELECT id FROM depreciation_rates WHERE useful_life_months=96 LIMIT 1);
 
-INSERT INTO asset_depreciation_policies(company_group_id,company_id,asset_type_id,depreciation_method_id,book_type,useful_life_months,residual_value_percent,effective_from,effective_to,is_active)
-SELECT @group_id,NULL,@type_1,@method_sl,'ACCOUNTING',48,5.00,'2026-01-01',NULL,1 FROM DUAL
+INSERT INTO asset_depreciation_policies(company_group_id,company_id,asset_type_id,depreciation_method_id,depreciation_rate_id,book_type,residual_value_percent,effective_from,effective_to,is_active)
+SELECT @group_id,NULL,@type_1,@method_sl,@rate_4y,'ACCOUNTING',5.00,'2026-01-01',NULL,1 FROM DUAL
 WHERE @type_1 IS NOT NULL AND NOT EXISTS(SELECT 1 FROM asset_depreciation_policies WHERE company_group_id=@group_id AND company_id IS NULL AND asset_type_id=@type_1 AND book_type='ACCOUNTING' AND effective_from='2026-01-01');
-INSERT INTO asset_depreciation_policies(company_group_id,company_id,asset_type_id,depreciation_method_id,book_type,useful_life_months,residual_value_percent,effective_from,effective_to,is_active)
-SELECT @group_id,NULL,@type_2,@method_sl,'ACCOUNTING',60,5.00,'2026-01-01',NULL,1 FROM DUAL
+INSERT INTO asset_depreciation_policies(company_group_id,company_id,asset_type_id,depreciation_method_id,depreciation_rate_id,book_type,residual_value_percent,effective_from,effective_to,is_active)
+SELECT @group_id,NULL,@type_2,@method_sl,@rate_5y,'ACCOUNTING',5.00,'2026-01-01',NULL,1 FROM DUAL
 WHERE @type_2 IS NOT NULL AND NOT EXISTS(SELECT 1 FROM asset_depreciation_policies WHERE company_group_id=@group_id AND company_id IS NULL AND asset_type_id=@type_2 AND book_type='ACCOUNTING' AND effective_from='2026-01-01');
-INSERT INTO asset_depreciation_policies(company_group_id,company_id,asset_type_id,depreciation_method_id,book_type,useful_life_months,residual_value_percent,effective_from,effective_to,is_active)
-SELECT @group_id,NULL,@type_3,@method_sl,'ACCOUNTING',96,10.00,'2026-01-01',NULL,1 FROM DUAL
+INSERT INTO asset_depreciation_policies(company_group_id,company_id,asset_type_id,depreciation_method_id,depreciation_rate_id,book_type,residual_value_percent,effective_from,effective_to,is_active)
+SELECT @group_id,NULL,@type_3,@method_sl,@rate_8y,'ACCOUNTING',10.00,'2026-01-01',NULL,1 FROM DUAL
 WHERE @type_3 IS NOT NULL AND NOT EXISTS(SELECT 1 FROM asset_depreciation_policies WHERE company_group_id=@group_id AND company_id IS NULL AND asset_type_id=@type_3 AND book_type='ACCOUNTING' AND effective_from='2026-01-01');
 
 SET @gl_asset = (SELECT id FROM gl_accounts WHERE company_id=@company_id AND code='110100' LIMIT 1);
 SET @gl_accumulated = (SELECT id FROM gl_accounts WHERE company_id=@company_id AND code='119100' LIMIT 1);
 SET @gl_expense = (SELECT id FROM gl_accounts WHERE company_id=@company_id AND code='610100' LIMIT 1);
-SET @mapping_category_1 = (SELECT id FROM asset_categories WHERE group_id=@group_id AND code='ELECTRONIC' LIMIT 1);
-SET @mapping_category_2 = (SELECT id FROM asset_categories WHERE group_id=@group_id AND code='FURNITURE' LIMIT 1);
-SET @mapping_category_3 = (SELECT id FROM asset_categories WHERE group_id=@group_id AND code='VEHICLE' LIMIT 1);
+SET @mapping_policy_1 = (SELECT id FROM asset_depreciation_policies WHERE company_group_id=@group_id AND company_id IS NULL AND asset_type_id=@type_1 AND book_type='ACCOUNTING' ORDER BY effective_from DESC LIMIT 1);
+SET @mapping_policy_2 = (SELECT id FROM asset_depreciation_policies WHERE company_group_id=@group_id AND company_id IS NULL AND asset_type_id=@type_2 AND book_type='ACCOUNTING' ORDER BY effective_from DESC LIMIT 1);
+SET @mapping_policy_3 = (SELECT id FROM asset_depreciation_policies WHERE company_group_id=@group_id AND company_id IS NULL AND asset_type_id=@type_3 AND book_type='ACCOUNTING' ORDER BY effective_from DESC LIMIT 1);
 
-INSERT INTO asset_accounting_mappings(company_id,asset_category_id,asset_gl_account_id,accumulated_depreciation_gl_account_id,depreciation_expense_gl_account_id,is_active) VALUES
-(@company_id,@mapping_category_1,@gl_asset,@gl_accumulated,@gl_expense,1),
-(@company_id,@mapping_category_2,@gl_asset,@gl_accumulated,@gl_expense,1),
-(@company_id,@mapping_category_3,@gl_asset,@gl_accumulated,@gl_expense,1)
+INSERT INTO asset_accounting_mappings(company_id,depreciation_policy_id,asset_gl_account_id,accumulated_depreciation_gl_account_id,depreciation_expense_gl_account_id,is_active) VALUES
+(@company_id,@mapping_policy_1,@gl_asset,@gl_accumulated,@gl_expense,1),
+(@company_id,@mapping_policy_2,@gl_asset,@gl_accumulated,@gl_expense,1),
+(@company_id,@mapping_policy_3,@gl_asset,@gl_accumulated,@gl_expense,1)
 ON DUPLICATE KEY UPDATE asset_gl_account_id=VALUES(asset_gl_account_id),accumulated_depreciation_gl_account_id=VALUES(accumulated_depreciation_gl_account_id),depreciation_expense_gl_account_id=VALUES(depreciation_expense_gl_account_id),is_active=VALUES(is_active);
 
 COMMIT;

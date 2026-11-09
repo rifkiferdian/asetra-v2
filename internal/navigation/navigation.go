@@ -50,6 +50,7 @@ var definitions = []definition{
 	{group: "Master Data", parent: "operational-master", key: "asset-statuses", label: "Status Aset", url: "/master/support/statuses", permission: "asset_statuses.view"},
 	{group: "Master Data", parent: "operational-master", key: "vendors", label: "Vendor", url: "/master/support/vendors", permission: "vendors.view"},
 	{group: "Master Data", parent: "accounting-master", key: "depreciation-methods", label: "Metode Penyusutan", url: "/master/support/depreciation-methods", permission: "depreciation_methods.view"},
+	{group: "Master Data", parent: "accounting-master", key: "depreciation-rates", label: "Tarif Penyusutan", url: "/master/support/depreciation-rates", permission: "depreciation_rates.view"},
 	{group: "Master Data", parent: "accounting-master", key: "depreciation-policies", label: "Kebijakan Penyusutan", url: "/master/support/depreciation-policies", permission: "asset_depreciation_policies.view"},
 	{group: "Master Data", parent: "accounting-master", key: "gl-accounts", label: "Chart of Accounts (GL)", url: "/master/support/gl-accounts", permission: "gl_accounts.view"},
 	{group: "Master Data", parent: "accounting-master", key: "asset-accounting-mappings", label: "Mapping Akun Accounting", url: "/master/support/accounting-mappings", permission: "asset_accounting_mappings.view"},

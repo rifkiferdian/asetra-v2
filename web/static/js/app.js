@@ -356,7 +356,7 @@ document.querySelectorAll("#createSupportDialog form, #editSupportDialog form").
   const filterSelect = (select, dataKey, value, zero = false) => {
     if (!select) return;
     [...select.options].forEach((option) => {
-      const visible = !option.dataset[dataKey] || option.dataset[dataKey] === value;
+      const visible = !option.dataset[dataKey] || option.dataset[dataKey] === "0" || option.dataset[dataKey] === value;
       option.hidden = !visible;
       option.disabled = !visible;
     });
@@ -366,12 +366,13 @@ document.querySelectorAll("#createSupportDialog form, #editSupportDialog form").
     const groupID = form.elements.company_group_id?.value ?? form.elements.company_id?.selectedOptions[0]?.dataset.groupId ?? "";
     filterSelect(form.elements.company_id, "groupId", groupID, true);
     filterSelect(form.elements.asset_type_id, "groupId", groupID);
-	filterSelect(form.elements.asset_category_id, "groupId", groupID);
+	filterSelect(form.elements.depreciation_policy_id, "groupId", groupID);
   };
   const updateCompany = () => {
     const companyID = form.elements.company_id?.value ?? "";
     [form.elements.parent_id, form.elements.asset_gl_id, form.elements.accumulated_gl_id, form.elements.expense_gl_id].forEach((select) => filterSelect(select, "companyId", companyID, select?.name !== "asset_gl_id"));
     updateGroup();
+    filterSelect(form.elements.depreciation_policy_id, "companyId", companyID);
   };
   form.elements.company_group_id?.addEventListener("change", updateGroup);
   form.elements.company_id?.addEventListener("change", updateCompany);

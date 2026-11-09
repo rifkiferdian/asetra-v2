@@ -53,6 +53,7 @@ func normalize(x Input) Input {
 	x.BookType = strings.ToUpper(strings.TrimSpace(x.BookType))
 	x.Email = strings.ToLower(strings.TrimSpace(x.Email))
 	x.ResidualValuePercent = strings.TrimSpace(x.ResidualValuePercent)
+	x.AnnualRatePercent = strings.TrimSpace(x.AnnualRatePercent)
 	return x
 }
 func valid(kind string, x Input) bool {
@@ -60,12 +61,19 @@ func valid(kind string, x Input) bool {
 	switch kind {
 	case "conditions", "statuses", "depreciation-methods":
 		return base()
+	case "depreciation-rates":
+		rate, err := strconv.ParseFloat(x.AnnualRatePercent, 64)
+		if !base() || x.UsefulLifeMonths == 0 || err != nil || rate <= 0 || rate > 100 {
+			return false
+		}
+		expected := 1200 / float64(x.UsefulLifeMonths)
+		return rate >= expected-0.01 && rate <= expected+0.01
 	case "vendors":
 		return x.CompanyGroupID > 0 && base() && (x.VendorType == "SUPPLIER" || x.VendorType == "SERVICE" || x.VendorType == "BOTH")
 	case "gl-accounts":
 		return x.CompanyID > 0 && base() && map[string]bool{"ASSET": true, "CONTRA_ASSET": true, "LIABILITY": true, "EQUITY": true, "REVENUE": true, "EXPENSE": true}[x.AccountType]
 	case "depreciation-policies":
-		if x.CompanyGroupID == 0 || x.AssetTypeID == 0 || x.MethodID == 0 || x.UsefulLifeMonths == 0 || !map[string]bool{"ACCOUNTING": true, "TAX": true}[x.BookType] {
+		if x.CompanyGroupID == 0 || x.AssetTypeID == 0 || x.MethodID == 0 || x.DepreciationRateID == 0 || !map[string]bool{"ACCOUNTING": true, "TAX": true}[x.BookType] {
 			return false
 		}
 		rv, err := strconv.ParseFloat(x.ResidualValuePercent, 64)
@@ -84,7 +92,7 @@ func valid(kind string, x Input) bool {
 		}
 		return true
 	case "accounting-mappings":
-		return x.CompanyID > 0 && x.AssetCategoryID > 0 && x.AssetGLID > 0 && ((x.AccumulatedGLID == 0 && x.ExpenseGLID == 0) || (x.AccumulatedGLID > 0 && x.ExpenseGLID > 0))
+		return x.CompanyID > 0 && x.DepreciationPolicyID > 0 && x.AssetGLID > 0 && ((x.AccumulatedGLID == 0 && x.ExpenseGLID == 0) || (x.AccumulatedGLID > 0 && x.ExpenseGLID > 0))
 	}
 	return false
 }
