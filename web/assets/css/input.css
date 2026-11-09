@@ -23,6 +23,7 @@ textarea {
   z-index: 60;
   overflow: hidden;
   pointer-events: none;
+  perspective: 700px;
 }
 
 .falling-leaf {
@@ -36,6 +37,8 @@ textarea {
   box-shadow: inset -2px -2px 4px rgb(88 48 15 / 18%);
   opacity: 0;
   animation: leaf-fall var(--leaf-duration) linear var(--leaf-delay) infinite;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
   will-change: transform, opacity;
 }
 
@@ -73,12 +76,35 @@ textarea {
 @keyframes leaf-fall {
   0% {
     opacity: 0;
-    transform: translate3d(0, -5vh, 0) rotate(0deg);
+    transform: translate3d(0, -5vh, 0)
+      rotateX(0deg) rotateY(0deg) rotateZ(0deg);
   }
-  8%, 88% { opacity: var(--leaf-opacity); }
+  8% { opacity: var(--leaf-opacity); }
+  25% {
+    transform: translate3d(var(--leaf-sway), 25vh, 35px)
+      rotateX(var(--leaf-flip-x-quarter))
+      rotateY(var(--leaf-flip-y-quarter))
+      rotateZ(var(--leaf-spin-quarter));
+  }
+  50% {
+    transform: translate3d(var(--leaf-sway-back), 53vh, -20px)
+      rotateX(var(--leaf-flip-x-half))
+      rotateY(var(--leaf-flip-y-half))
+      rotateZ(var(--leaf-spin-half));
+  }
+  75% {
+    transform: translate3d(var(--leaf-sway-return), 81vh, 25px)
+      rotateX(var(--leaf-flip-x-three-quarter))
+      rotateY(var(--leaf-flip-y-three-quarter))
+      rotateZ(var(--leaf-spin-three-quarter));
+  }
+  88% { opacity: var(--leaf-opacity); }
   100% {
     opacity: 0;
-    transform: translate3d(var(--leaf-drift), 110vh, 0) rotate(var(--leaf-spin));
+    transform: translate3d(var(--leaf-drift), 110vh, 0)
+      rotateX(var(--leaf-flip-x))
+      rotateY(var(--leaf-flip-y))
+      rotateZ(var(--leaf-spin));
   }
 }
 

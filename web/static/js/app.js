@@ -17,7 +17,25 @@ function createFallingLeaves() {
     leaf.style.setProperty("--leaf-duration", `${10 + Math.random() * 10}s`);
     leaf.style.setProperty("--leaf-delay", `${-Math.random() * 20}s`);
     leaf.style.setProperty("--leaf-drift", `${-90 + Math.random() * 180}px`);
-    leaf.style.setProperty("--leaf-spin", `${540 + Math.random() * 720}deg`);
+    const sway = (Math.random() < 0.5 ? -1 : 1) * (35 + Math.random() * 75);
+    leaf.style.setProperty("--leaf-sway", `${sway}px`);
+    leaf.style.setProperty("--leaf-sway-back", `${sway * -0.65}px`);
+    leaf.style.setProperty("--leaf-sway-return", `${sway * 0.45}px`);
+    const spin = (Math.random() < 0.5 ? -1 : 1) * (540 + Math.random() * 720);
+    const flipX = (Math.random() < 0.5 ? -1 : 1) * (360 + Math.random() * 720);
+    const flipY = (Math.random() < 0.5 ? -1 : 1) * (360 + Math.random() * 540);
+    leaf.style.setProperty("--leaf-spin", `${spin}deg`);
+    leaf.style.setProperty("--leaf-spin-quarter", `${spin * 0.25}deg`);
+    leaf.style.setProperty("--leaf-spin-half", `${spin * 0.5}deg`);
+    leaf.style.setProperty("--leaf-spin-three-quarter", `${spin * 0.75}deg`);
+    leaf.style.setProperty("--leaf-flip-x", `${flipX}deg`);
+    leaf.style.setProperty("--leaf-flip-x-quarter", `${flipX * 0.25}deg`);
+    leaf.style.setProperty("--leaf-flip-x-half", `${flipX * 0.5}deg`);
+    leaf.style.setProperty("--leaf-flip-x-three-quarter", `${flipX * 0.75}deg`);
+    leaf.style.setProperty("--leaf-flip-y", `${flipY}deg`);
+    leaf.style.setProperty("--leaf-flip-y-quarter", `${flipY * 0.25}deg`);
+    leaf.style.setProperty("--leaf-flip-y-half", `${flipY * 0.5}deg`);
+    leaf.style.setProperty("--leaf-flip-y-three-quarter", `${flipY * 0.75}deg`);
     leaf.style.setProperty("--leaf-opacity", `${0.45 + Math.random() * 0.35}`);
     fragment.appendChild(leaf);
   }
