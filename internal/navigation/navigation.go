@@ -35,6 +35,7 @@ type definition struct {
 
 var definitions = []definition{
 	{group: "Menu utama", key: "dashboard", label: "Dashboard", url: "/dashboard"},
+	{group: "Pengelolaan", key: "assets", label: "Data Aset", url: "/assets", permission: "assets.view"},
 	{group: "Organisasi", parent: "asset-organization", key: "companies", label: "Company", url: "/organization/companies", permission: "companies.view"},
 	{group: "Organisasi", parent: "asset-organization", key: "branches", label: "Branch", url: "/organization/branches", permission: "branches.view"},
 	{group: "Organisasi", parent: "asset-organization", key: "asset-departments", label: "Department", url: "/organization/departments", permission: "asset_departments.view"},

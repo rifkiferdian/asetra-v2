@@ -1,3 +1,32 @@
+function createFallingLeaves() {
+  const container = document.querySelector(".falling-leaves");
+  if (!container || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const colors = ["#f97316", "#ea580c", "#f59e0b", "#ca8a04", "#a16207", "#b45309"];
+  const count = Math.min(18, Math.max(10, Math.floor(window.innerWidth / 90)));
+  const fragment = document.createDocumentFragment();
+
+  for (let index = 0; index < count; index += 1) {
+    const leaf = document.createElement("span");
+    const isMaple = Math.random() < 0.5;
+    leaf.className = isMaple ? "falling-leaf falling-leaf--maple" : "falling-leaf";
+    if (isMaple) leaf.textContent = "🍁";
+    leaf.style.setProperty("--leaf-left", `${Math.random() * 100}%`);
+    leaf.style.setProperty("--leaf-size", `${12 + Math.random() * 13}px`);
+    leaf.style.setProperty("--leaf-color", colors[Math.floor(Math.random() * colors.length)]);
+    leaf.style.setProperty("--leaf-duration", `${10 + Math.random() * 10}s`);
+    leaf.style.setProperty("--leaf-delay", `${-Math.random() * 20}s`);
+    leaf.style.setProperty("--leaf-drift", `${-90 + Math.random() * 180}px`);
+    leaf.style.setProperty("--leaf-spin", `${540 + Math.random() * 720}deg`);
+    leaf.style.setProperty("--leaf-opacity", `${0.45 + Math.random() * 0.35}`);
+    fragment.appendChild(leaf);
+  }
+
+  container.appendChild(fragment);
+}
+
+createFallingLeaves();
+
 document.querySelectorAll("[data-password-toggle]").forEach((button) => {
   button.addEventListener("click", () => {
     const input = document.getElementById(button.dataset.target);
@@ -77,6 +106,15 @@ document.querySelectorAll("[data-feedback]").forEach((feedback) => {
     confirmButtonColor: "#f97316",
   });
 });
+
+// Feedback hanya ditampilkan sekali. Hapus parameter setelah halaman membacanya
+// agar refresh tidak memunculkan kembali notifikasi operasi sebelumnya.
+if (document.querySelector("[data-feedback]")) {
+  const cleanURL = new URL(window.location.href);
+  cleanURL.searchParams.delete("success");
+  cleanURL.searchParams.delete("error");
+  window.history.replaceState({}, "", `${cleanURL.pathname}${cleanURL.search}${cleanURL.hash}`);
+}
 
 document.querySelectorAll("[data-demo-action]").forEach((button) => {
   button.addEventListener("click", () => showDashboardToast(button.dataset.demoAction));
@@ -811,7 +849,7 @@ document.querySelectorAll("[data-access-filter]").forEach((filter) => {
     const filteredRows = rows.filter((row) => {
       const matchesSearch = (row.dataset.filterSearch ?? "").toLowerCase().includes(query);
       const matchesGuard = !selectedGuard || row.dataset.filterGuard === selectedGuard;
-      const matchesExtra = !selectedExtra || row.dataset.filterExtra === selectedExtra;
+      const matchesExtra = !selectedExtra || row.dataset.filterExtra === selectedExtra || (!row.dataset.filterExtra && (row.dataset.filterSearch ?? "").includes(selectedExtra));
       const matchesDepartment = !selectedDepartment || row.dataset.filterDepartment === selectedDepartment;
       const matchesParent = !selectedParent || (row.dataset.filterParents ?? "").split(" ").includes(selectedParent);
       const typeAndLevel = row.children[4]?.textContent ?? "";

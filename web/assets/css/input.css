@@ -15,6 +15,77 @@ textarea {
   font-family: "Roboto", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Decorative falling leaves. Kept above the page visually while remaining
+   completely transparent to mouse and touch interaction. */
+.falling-leaves {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.falling-leaf {
+  position: absolute;
+  top: -3rem;
+  left: var(--leaf-left);
+  width: var(--leaf-size);
+  height: calc(var(--leaf-size) * .72);
+  border-radius: 100% 0 100% 0;
+  background: var(--leaf-color);
+  box-shadow: inset -2px -2px 4px rgb(88 48 15 / 18%);
+  opacity: 0;
+  animation: leaf-fall var(--leaf-duration) linear var(--leaf-delay) infinite;
+  will-change: transform, opacity;
+}
+
+.falling-leaf--maple {
+  display: grid;
+  place-items: center;
+  width: var(--leaf-size);
+  height: var(--leaf-size);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--leaf-color);
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  font-size: var(--leaf-size);
+  line-height: 1;
+  filter: drop-shadow(1px 2px 1px rgb(88 48 15 / 28%));
+}
+
+.falling-leaf::after {
+  content: "";
+  position: absolute;
+  top: 48%;
+  left: 10%;
+  width: 82%;
+  height: 1px;
+  background: rgb(120 53 15 / 38%);
+  transform: rotate(-34deg);
+  transform-origin: left center;
+}
+
+.falling-leaf--maple::after {
+  display: none;
+}
+
+@keyframes leaf-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -5vh, 0) rotate(0deg);
+  }
+  8%, 88% { opacity: var(--leaf-opacity); }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--leaf-drift), 110vh, 0) rotate(var(--leaf-spin));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .falling-leaves { display: none; }
+}
+
 .asset-org-input {
   width: 100%;
   margin-top: .5rem;

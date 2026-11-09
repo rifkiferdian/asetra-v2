@@ -14,6 +14,7 @@ import (
 	"asetra/internal/assessmentrule"
 	"asetra/internal/assetmaster"
 	"asetra/internal/assetorganization"
+	"asetra/internal/assetregistry"
 	"asetra/internal/auth"
 	"asetra/internal/config"
 	"asetra/internal/dashboard"
@@ -101,6 +102,7 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		assessmentHandler := traineeassessment.NewHandler(cfg.AppName, traineeassessment.NewService(traineeassessment.NewRepository(db)), navigationService)
 		assessmentReportHandler := assessmentreport.NewHandler(cfg.AppName, assessmentReportService, navigationService)
 		assetOrganizationHandler := assetorganization.NewHandler(cfg.AppName, assetorganization.NewService(assetorganization.NewRepository(db)), navigationService)
+		assetRegistryHandler := assetregistry.NewHandler(cfg.AppName, assetregistry.NewService(assetregistry.NewRepository(db)), navigationService)
 		assetMasterHandler := assetmaster.NewHandler(cfg.AppName, assetmaster.NewService(assetmaster.NewRepository(db)), navigationService)
 		supportMasterHandler := supportmaster.NewHandler(cfg.AppName, supportmaster.NewService(supportmaster.NewRepository(db)), navigationService)
 		profileHandler := profile.NewHandler(cfg.AppName, profile.NewService(profile.NewRepository(db)), navigationService)
@@ -108,6 +110,8 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		sessionHandler := sessionmanagement.NewHandler(cfg.AppName, sessionmanagement.NewService(sessionmanagement.NewRepository(db)), navigationService)
 		userHandler := userManagement.NewHandler(cfg.AppName, userManagement.NewService(userManagement.NewRepository(db)), navigationService)
 		authorized.GET("/profile", profileHandler.Index)
+		authorized.GET("/assets", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Index)
+		authorized.GET("/assets/:id", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Detail)
 		authorized.POST("/profile/name", profileHandler.UpdateName)
 		authorized.POST("/profile/password", profileHandler.UpdatePassword)
 		authorized.GET("/assessments", auth.RequirePermission(db, "trainee_assessments.view"), assessmentHandler.Index)
