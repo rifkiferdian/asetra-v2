@@ -51,7 +51,6 @@ var definitions = []definition{
 	{group: "Master Data", parent: "accounting-master", key: "depreciation-methods", label: "Metode Penyusutan", url: "/master/support/depreciation-methods", permission: "depreciation_methods.view"},
 	{group: "Master Data", parent: "accounting-master", key: "depreciation-policies", label: "Kebijakan Penyusutan", url: "/master/support/depreciation-policies", permission: "asset_depreciation_policies.view"},
 	{group: "Master Data", parent: "accounting-master", key: "gl-accounts", label: "Chart of Accounts (GL)", url: "/master/support/gl-accounts", permission: "gl_accounts.view"},
-	{group: "Master Data", parent: "accounting-master", key: "asset-accounting-groups", label: "Kelompok Accounting Aset", url: "/master/support/accounting-groups", permission: "asset_accounting_groups.view"},
 	{group: "Master Data", parent: "accounting-master", key: "asset-accounting-mappings", label: "Mapping Akun Accounting", url: "/master/support/accounting-mappings", permission: "asset_accounting_mappings.view"},
 	{group: "Pengelolaan", parent: "access", key: "users", label: "User", url: "/settings/users", permission: "users.view"},
 	{group: "Pengelolaan", parent: "access", key: "roles", label: "Role", url: "/settings/roles", permission: "roles.view"},

@@ -1,7 +1,7 @@
 package supportmaster
 
 type Input struct {
-	ID, CompanyGroupID, CompanyID, ParentID, AssetTypeID, MethodID, AccountingGroupID    uint64
+	ID, CompanyGroupID, CompanyID, ParentID, AssetTypeID, MethodID, AssetCategoryID      uint64
 	AssetGLID, AccumulatedGLID, ExpenseGLID                                              uint64
 	Code, Name, Description, VendorType, TaxNumber, Address, Phone, Email, ContactPerson string
 	AccountType, ExternalAccountID, BookType, EffectiveFrom, EffectiveTo                 string

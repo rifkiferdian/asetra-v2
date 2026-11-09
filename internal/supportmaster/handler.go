@@ -23,7 +23,7 @@ func NewHandler(a string, s *Service, n *navigation.Service) *Handler { return &
 
 var Pages = map[string]struct{ Title, Section, Active string }{
 	"conditions": {"Kondisi Aset", "Master Operasional", "asset-conditions"}, "statuses": {"Status Aset", "Master Operasional", "asset-statuses"}, "vendors": {"Vendor", "Master Operasional", "vendors"},
-	"depreciation-methods": {"Metode Penyusutan", "Master Accounting", "depreciation-methods"}, "depreciation-policies": {"Kebijakan Penyusutan", "Master Accounting", "depreciation-policies"}, "gl-accounts": {"Chart of Accounts (GL)", "Master Accounting", "gl-accounts"}, "accounting-groups": {"Kelompok Accounting Aset", "Master Accounting", "asset-accounting-groups"}, "accounting-mappings": {"Mapping Akun Accounting", "Master Accounting", "asset-accounting-mappings"}}
+	"depreciation-methods": {"Metode Penyusutan", "Master Accounting", "depreciation-methods"}, "depreciation-policies": {"Kebijakan Penyusutan", "Master Accounting", "depreciation-policies"}, "gl-accounts": {"Chart of Accounts (GL)", "Master Accounting", "gl-accounts"}, "accounting-mappings": {"Mapping Akun Accounting", "Master Accounting", "asset-accounting-mappings"}}
 
 func (h *Handler) Index(c *gin.Context) {
 	kind := kind(c)
@@ -58,7 +58,7 @@ func (h *Handler) save(c *gin.Context, id uint64) {
 		h.redirect(c, "error", "csrf")
 		return
 	}
-	x := Input{CompanyGroupID: u(c, "company_group_id"), CompanyID: u(c, "company_id"), ParentID: u(c, "parent_id"), AssetTypeID: u(c, "asset_type_id"), MethodID: u(c, "method_id"), AccountingGroupID: u(c, "accounting_group_id"), AssetGLID: u(c, "asset_gl_id"), AccumulatedGLID: u(c, "accumulated_gl_id"), ExpenseGLID: u(c, "expense_gl_id"), Code: c.PostForm("code"), Name: c.PostForm("name"), Description: c.PostForm("description"), VendorType: c.PostForm("vendor_type"), TaxNumber: c.PostForm("tax_number"), Address: c.PostForm("address"), Phone: c.PostForm("phone"), Email: c.PostForm("email"), ContactPerson: c.PostForm("contact_person"), AccountType: c.PostForm("account_type"), ExternalAccountID: c.PostForm("external_account_id"), BookType: c.PostForm("book_type"), UsefulLifeMonths: u(c, "useful_life_months"), ResidualValuePercent: c.PostForm("residual_value_percent"), EffectiveFrom: c.PostForm("effective_from"), EffectiveTo: c.PostForm("effective_to"), IsActive: c.PostForm("is_active") == "1"}
+	x := Input{CompanyGroupID: u(c, "company_group_id"), CompanyID: u(c, "company_id"), ParentID: u(c, "parent_id"), AssetTypeID: u(c, "asset_type_id"), MethodID: u(c, "method_id"), AssetCategoryID: u(c, "asset_category_id"), AssetGLID: u(c, "asset_gl_id"), AccumulatedGLID: u(c, "accumulated_gl_id"), ExpenseGLID: u(c, "expense_gl_id"), Code: c.PostForm("code"), Name: c.PostForm("name"), Description: c.PostForm("description"), VendorType: c.PostForm("vendor_type"), TaxNumber: c.PostForm("tax_number"), Address: c.PostForm("address"), Phone: c.PostForm("phone"), Email: c.PostForm("email"), ContactPerson: c.PostForm("contact_person"), AccountType: c.PostForm("account_type"), ExternalAccountID: c.PostForm("external_account_id"), BookType: c.PostForm("book_type"), UsefulLifeMonths: u(c, "useful_life_months"), ResidualValuePercent: c.PostForm("residual_value_percent"), EffectiveFrom: c.PostForm("effective_from"), EffectiveTo: c.PostForm("effective_to"), IsActive: c.PostForm("is_active") == "1"}
 	h.result(c, h.service.Save(c, kind(c), id, x), map[bool]string{true: "created", false: "updated"}[id == 0])
 }
 func (h *Handler) Delete(c *gin.Context) {

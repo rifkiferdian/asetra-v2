@@ -172,7 +172,7 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 			master.POST("/assets/"+kind+"/:id/update", auth.RequirePermission(db, permission+".update"), withKind(assetMasterHandler.Update))
 			master.POST("/assets/"+kind+"/:id/delete", auth.RequirePermission(db, permission+".delete"), withKind(assetMasterHandler.Delete))
 		}
-		for _, support := range []struct{ kind, permission string }{{"conditions", "asset_conditions"}, {"statuses", "asset_statuses"}, {"vendors", "vendors"}, {"depreciation-methods", "depreciation_methods"}, {"depreciation-policies", "asset_depreciation_policies"}, {"gl-accounts", "gl_accounts"}, {"accounting-groups", "asset_accounting_groups"}, {"accounting-mappings", "asset_accounting_mappings"}} {
+		for _, support := range []struct{ kind, permission string }{{"conditions", "asset_conditions"}, {"statuses", "asset_statuses"}, {"vendors", "vendors"}, {"depreciation-methods", "depreciation_methods"}, {"depreciation-policies", "asset_depreciation_policies"}, {"gl-accounts", "gl_accounts"}, {"accounting-mappings", "asset_accounting_mappings"}} {
 			kind, permission := support.kind, support.permission
 			withKind := func(handler gin.HandlerFunc) gin.HandlerFunc {
 				return func(c *gin.Context) { c.Set("supportMasterKind", kind); handler(c) }

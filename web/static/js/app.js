@@ -328,7 +328,7 @@ document.querySelectorAll("#createSupportDialog form, #editSupportDialog form").
     const groupID = form.elements.company_group_id?.value ?? form.elements.company_id?.selectedOptions[0]?.dataset.groupId ?? "";
     filterSelect(form.elements.company_id, "groupId", groupID, true);
     filterSelect(form.elements.asset_type_id, "groupId", groupID);
-    filterSelect(form.elements.accounting_group_id, "groupId", groupID);
+	filterSelect(form.elements.asset_category_id, "groupId", groupID);
   };
   const updateCompany = () => {
     const companyID = form.elements.company_id?.value ?? "";
@@ -737,6 +737,9 @@ document.querySelectorAll("[data-access-filter]").forEach((filter) => {
   const guard = filter.querySelector("[data-filter-guard]");
   const extra = filter.querySelector("[data-filter-extra]");
   const department = filter.querySelector("[data-filter-department]");
+  const parent = filter.querySelector("[data-filter-parent]");
+  const type = filter.querySelector("[data-filter-type]");
+  const level = filter.querySelector("[data-filter-level]");
   const count = filter.querySelector("[data-filter-count]");
   const rows = [...table.querySelectorAll("[data-filter-row]")];
   const empty = table.querySelector("[data-filter-empty]");
@@ -802,12 +805,19 @@ document.querySelectorAll("[data-access-filter]").forEach((filter) => {
     const selectedGuard = guard?.value ?? "";
     const selectedExtra = extra?.value ?? "";
     const selectedDepartment = department?.value ?? "";
+    const selectedParent = parent?.value ?? "";
+    const selectedType = type?.value ?? "";
+    const selectedLevel = level?.value ?? "";
     const filteredRows = rows.filter((row) => {
       const matchesSearch = (row.dataset.filterSearch ?? "").toLowerCase().includes(query);
       const matchesGuard = !selectedGuard || row.dataset.filterGuard === selectedGuard;
       const matchesExtra = !selectedExtra || row.dataset.filterExtra === selectedExtra;
       const matchesDepartment = !selectedDepartment || row.dataset.filterDepartment === selectedDepartment;
-      return matchesSearch && matchesGuard && matchesExtra && matchesDepartment;
+      const matchesParent = !selectedParent || (row.dataset.filterParents ?? "").split(" ").includes(selectedParent);
+      const typeAndLevel = row.children[4]?.textContent ?? "";
+      const matchesType = !selectedType || typeAndLevel.trim().startsWith(selectedType);
+      const matchesLevel = !selectedLevel || typeAndLevel.trim().endsWith(`Level ${selectedLevel}`);
+      return matchesSearch && matchesGuard && matchesExtra && matchesDepartment && matchesParent && matchesType && matchesLevel;
     });
     const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
     currentPage = Math.min(currentPage, totalPages);
@@ -828,6 +838,9 @@ document.querySelectorAll("[data-access-filter]").forEach((filter) => {
   guard?.addEventListener("change", () => applyAccessFilter(true));
   extra?.addEventListener("change", () => applyAccessFilter(true));
   department?.addEventListener("change", () => applyAccessFilter(true));
+  parent?.addEventListener("change", () => applyAccessFilter(true));
+  type?.addEventListener("change", () => applyAccessFilter(true));
+  level?.addEventListener("change", () => applyAccessFilter(true));
   applyAccessFilter();
 });
 

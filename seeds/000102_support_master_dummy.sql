@@ -32,12 +32,6 @@ INSERT INTO depreciation_methods(code,name,description,is_active) VALUES
 ('UOP','Unit Produksi','Penyusutan berdasarkan jumlah unit produksi atau pemakaian',1)
 ON DUPLICATE KEY UPDATE name=VALUES(name),description=VALUES(description),is_active=VALUES(is_active);
 
-INSERT INTO asset_accounting_groups(company_group_id,code,name,description,is_active) VALUES
-(@group_id,'IT-EQUIPMENT','Peralatan Teknologi','Kelompok accounting perangkat teknologi informasi',1),
-(@group_id,'OFFICE-EQUIPMENT','Peralatan Kantor','Kelompok accounting furniture dan perlengkapan kantor',1),
-(@group_id,'VEHICLES','Kendaraan','Kelompok accounting kendaraan operasional',1)
-ON DUPLICATE KEY UPDATE name=VALUES(name),description=VALUES(description),is_active=VALUES(is_active);
-
 INSERT INTO gl_accounts(company_id,parent_gl_account_id,code,name,account_type,external_account_id,is_active) VALUES
 (@company_id,NULL,'110100','Aset Tetap','ASSET','EXT-ASSET-110100',1),
 (@company_id,NULL,'119100','Akumulasi Penyusutan Aset','CONTRA_ASSET','EXT-ACCUM-119100',1),
@@ -62,14 +56,14 @@ WHERE @type_3 IS NOT NULL AND NOT EXISTS(SELECT 1 FROM asset_depreciation_polici
 SET @gl_asset = (SELECT id FROM gl_accounts WHERE company_id=@company_id AND code='110100' LIMIT 1);
 SET @gl_accumulated = (SELECT id FROM gl_accounts WHERE company_id=@company_id AND code='119100' LIMIT 1);
 SET @gl_expense = (SELECT id FROM gl_accounts WHERE company_id=@company_id AND code='610100' LIMIT 1);
-SET @accounting_group_1 = (SELECT id FROM asset_accounting_groups WHERE company_group_id=@group_id AND code='IT-EQUIPMENT' LIMIT 1);
-SET @accounting_group_2 = (SELECT id FROM asset_accounting_groups WHERE company_group_id=@group_id AND code='OFFICE-EQUIPMENT' LIMIT 1);
-SET @accounting_group_3 = (SELECT id FROM asset_accounting_groups WHERE company_group_id=@group_id AND code='VEHICLES' LIMIT 1);
+SET @mapping_category_1 = (SELECT id FROM asset_categories WHERE group_id=@group_id AND code='ELECTRONIC' LIMIT 1);
+SET @mapping_category_2 = (SELECT id FROM asset_categories WHERE group_id=@group_id AND code='FURNITURE' LIMIT 1);
+SET @mapping_category_3 = (SELECT id FROM asset_categories WHERE group_id=@group_id AND code='VEHICLE' LIMIT 1);
 
-INSERT INTO asset_accounting_mappings(company_id,asset_accounting_group_id,asset_gl_account_id,accumulated_depreciation_gl_account_id,depreciation_expense_gl_account_id,is_active) VALUES
-(@company_id,@accounting_group_1,@gl_asset,@gl_accumulated,@gl_expense,1),
-(@company_id,@accounting_group_2,@gl_asset,@gl_accumulated,@gl_expense,1),
-(@company_id,@accounting_group_3,@gl_asset,@gl_accumulated,@gl_expense,1)
+INSERT INTO asset_accounting_mappings(company_id,asset_category_id,asset_gl_account_id,accumulated_depreciation_gl_account_id,depreciation_expense_gl_account_id,is_active) VALUES
+(@company_id,@mapping_category_1,@gl_asset,@gl_accumulated,@gl_expense,1),
+(@company_id,@mapping_category_2,@gl_asset,@gl_accumulated,@gl_expense,1),
+(@company_id,@mapping_category_3,@gl_asset,@gl_accumulated,@gl_expense,1)
 ON DUPLICATE KEY UPDATE asset_gl_account_id=VALUES(asset_gl_account_id),accumulated_depreciation_gl_account_id=VALUES(accumulated_depreciation_gl_account_id),depreciation_expense_gl_account_id=VALUES(depreciation_expense_gl_account_id),is_active=VALUES(is_active);
 
 COMMIT;

@@ -62,8 +62,6 @@ func valid(kind string, x Input) bool {
 		return base()
 	case "vendors":
 		return x.CompanyGroupID > 0 && base() && (x.VendorType == "SUPPLIER" || x.VendorType == "SERVICE" || x.VendorType == "BOTH")
-	case "accounting-groups":
-		return x.CompanyGroupID > 0 && base()
 	case "gl-accounts":
 		return x.CompanyID > 0 && base() && map[string]bool{"ASSET": true, "CONTRA_ASSET": true, "LIABILITY": true, "EQUITY": true, "REVENUE": true, "EXPENSE": true}[x.AccountType]
 	case "depreciation-policies":
@@ -86,7 +84,7 @@ func valid(kind string, x Input) bool {
 		}
 		return true
 	case "accounting-mappings":
-		return x.CompanyID > 0 && x.AccountingGroupID > 0 && x.AssetGLID > 0 && ((x.AccumulatedGLID == 0 && x.ExpenseGLID == 0) || (x.AccumulatedGLID > 0 && x.ExpenseGLID > 0))
+		return x.CompanyID > 0 && x.AssetCategoryID > 0 && x.AssetGLID > 0 && ((x.AccumulatedGLID == 0 && x.ExpenseGLID == 0) || (x.AccumulatedGLID > 0 && x.ExpenseGLID > 0))
 	}
 	return false
 }

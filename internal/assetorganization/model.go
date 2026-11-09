@@ -70,6 +70,10 @@ type AssetLocation struct {
 	Description      string
 	IsActive         bool
 	ChildCount       int
+	DescendantCount  int
+	Depth            int
+	HierarchyPath    string
+	AncestorIDs      string
 }
 
 type GroupInput struct {

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -74,7 +75,70 @@ func (h *Handler) Locations(c *gin.Context) {
 		h.fail(c, err)
 		return
 	}
-	h.render(c, "assetorganization/locations.html", "asset-locations", gin.H{"Title": "Asset Location", "Branches": branches, "Locations": locations, "LocationCount": len(locations)})
+	rootCount := enrichLocationHierarchy(locations)
+	levels := make([]int, 0)
+	seenLevels := make(map[int]bool)
+	for _, location := range locations {
+		if !seenLevels[location.Depth] {
+			seenLevels[location.Depth] = true
+			levels = append(levels, location.Depth)
+		}
+	}
+	sort.Ints(levels)
+	h.render(c, "assetorganization/locations.html", "asset-locations", gin.H{"Title": "Asset Location", "Branches": branches, "Locations": locations, "LocationLevels": levels, "LocationCount": len(locations), "RootLocationCount": rootCount, "SubLocationCount": len(locations) - rootCount})
+}
+
+func enrichLocationHierarchy(locations []AssetLocation) int {
+	byID := make(map[uint64]*AssetLocation, len(locations))
+	children := make(map[uint64][]uint64)
+	rootCount := 0
+	for i := range locations {
+		byID[locations[i].ID] = &locations[i]
+		children[locations[i].ParentID] = append(children[locations[i].ParentID], locations[i].ID)
+		if locations[i].ParentID == 0 {
+			rootCount++
+		}
+	}
+	for i := range locations {
+		x := &locations[i]
+		path := []string{x.Name}
+		ancestorIDs := []string{strconv.FormatUint(x.ID, 10)}
+		seen := map[uint64]bool{x.ID: true}
+		parentID := x.ParentID
+		for parentID > 0 && !seen[parentID] {
+			seen[parentID] = true
+			parent, ok := byID[parentID]
+			if !ok {
+				break
+			}
+			x.Depth++
+			path = append([]string{parent.Name}, path...)
+			ancestorIDs = append(ancestorIDs, strconv.FormatUint(parent.ID, 10))
+			parentID = parent.ParentID
+		}
+		x.HierarchyPath = strings.Join(path, " / ")
+		x.AncestorIDs = " " + strings.Join(ancestorIDs, " ") + " "
+
+		visited := map[uint64]bool{x.ID: true}
+		queue := append([]uint64(nil), children[x.ID]...)
+		for len(queue) > 0 {
+			id := queue[0]
+			queue = queue[1:]
+			if visited[id] {
+				continue
+			}
+			visited[id] = true
+			x.DescendantCount++
+			queue = append(queue, children[id]...)
+		}
+	}
+	sort.SliceStable(locations, func(i, j int) bool {
+		if locations[i].BranchName != locations[j].BranchName {
+			return locations[i].BranchName < locations[j].BranchName
+		}
+		return locations[i].HierarchyPath < locations[j].HierarchyPath
+	})
+	return rootCount
 }
 
 func (h *Handler) CreateGroup(c *gin.Context) {
