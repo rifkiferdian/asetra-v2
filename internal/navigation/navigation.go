@@ -41,7 +41,7 @@ var definitions = []definition{
 	{group: "Organisasi", parent: "asset-organization", key: "branches", label: "Branch", url: "/organization/branches", permission: "branches.view"},
 	{group: "Organisasi", parent: "asset-organization", key: "asset-departments", label: "Department", url: "/organization/departments", permission: "asset_departments.view"},
 	{group: "Organisasi", parent: "asset-organization", key: "asset-locations", label: "Asset Location", url: "/organization/asset-locations", permission: "asset_locations.view"},
-	{group: "Master Data", parent: "master", key: "stores", label: "Store", url: "/master/stores", permission: "stores.view"},
+	{group: "Pengelolaan", parent: "access", key: "stores", label: "Master Data Store", url: "/master/stores", permission: "stores.view"},
 	{group: "Master Data", parent: "asset-master", key: "asset-categories", label: "Asset Category", url: "/master/assets/categories", permission: "asset_categories.view"},
 	{group: "Master Data", parent: "asset-master", key: "asset-types", label: "Asset Type", url: "/master/assets/types", permission: "asset_types.view"},
 	{group: "Master Data", parent: "asset-master", key: "asset-brands", label: "Asset Brand", url: "/master/assets/brands", permission: "asset_brands.view"},
