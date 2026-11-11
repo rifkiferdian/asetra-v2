@@ -12,6 +12,7 @@ import (
 	"asetra/internal/assessmentcriterion"
 	"asetra/internal/assessmentreport"
 	"asetra/internal/assessmentrule"
+	"asetra/internal/assetlocationreport"
 	"asetra/internal/assetmaster"
 	"asetra/internal/assetorganization"
 	"asetra/internal/assetregistry"
@@ -105,6 +106,7 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		assessmentReportHandler := assessmentreport.NewHandler(cfg.AppName, assessmentReportService, navigationService)
 		assetOrganizationHandler := assetorganization.NewHandler(cfg.AppName, assetorganization.NewService(assetorganization.NewRepository(db)), navigationService)
 		assetRegistryHandler := assetregistry.NewHandler(cfg.AppName, assetregistry.NewService(assetregistry.NewRepository(db)), navigationService)
+		assetLocationReportHandler := assetlocationreport.NewHandler(cfg.AppName, assetlocationreport.NewService(assetlocationreport.NewRepository(db)), navigationService)
 		assetMasterHandler := assetmaster.NewHandler(cfg.AppName, assetmaster.NewService(assetmaster.NewRepository(db)), navigationService)
 		supportMasterHandler := supportmaster.NewHandler(cfg.AppName, supportmaster.NewService(supportmaster.NewRepository(db)), navigationService)
 		profileHandler := profile.NewHandler(cfg.AppName, profile.NewService(profile.NewRepository(db)), navigationService)
@@ -114,6 +116,7 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		authorized.GET("/profile", profileHandler.Index)
 		authorized.GET("/assets", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Index)
 		authorized.GET("/assets/:id", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Detail)
+		authorized.GET("/reports/assets-by-location", auth.RequirePermission(db, "assets.view"), assetLocationReportHandler.Index)
 		authorized.POST("/profile/name", profileHandler.UpdateName)
 		authorized.POST("/profile/password", profileHandler.UpdatePassword)
 		authorized.GET("/assessments", auth.RequirePermission(db, "trainee_assessments.view"), assessmentHandler.Index)
