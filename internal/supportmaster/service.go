@@ -92,7 +92,7 @@ func valid(kind string, x Input) bool {
 		}
 		return true
 	case "accounting-mappings":
-		return x.CompanyID > 0 && x.DepreciationPolicyID > 0 && x.AssetGLID > 0 && ((x.AccumulatedGLID == 0 && x.ExpenseGLID == 0) || (x.AccumulatedGLID > 0 && x.ExpenseGLID > 0))
+		return x.CompanyID > 0 && x.DepreciationPolicyID > 0 && x.GLAccountID > 0
 	}
 	return false
 }

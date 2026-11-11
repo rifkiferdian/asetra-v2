@@ -116,6 +116,7 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		authorized.GET("/profile", profileHandler.Index)
 		authorized.GET("/assets", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Index)
 		authorized.GET("/assets/:id", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Detail)
+		authorized.GET("/assets/:id/qr", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.QRCode)
 		authorized.GET("/reports/assets-by-location", auth.RequirePermission(db, "assets.view"), assetLocationReportHandler.Index)
 		authorized.POST("/profile/name", profileHandler.UpdateName)
 		authorized.POST("/profile/password", profileHandler.UpdatePassword)

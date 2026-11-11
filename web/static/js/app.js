@@ -382,19 +382,29 @@ document.querySelectorAll("#createSupportDialog form, #editSupportDialog form").
   };
   const updateGroup = () => {
     const groupID = form.elements.company_group_id?.value ?? form.elements.company_id?.selectedOptions[0]?.dataset.groupId ?? "";
-    filterSelect(form.elements.company_id, "groupId", groupID, true);
+    if (form.elements.company_group_id) {
+      filterSelect(form.elements.company_id, "groupId", groupID, true);
+    }
     filterSelect(form.elements.asset_type_id, "groupId", groupID);
-	filterSelect(form.elements.depreciation_policy_id, "groupId", groupID);
+    filterSelect(form.elements.depreciation_policy_id, "groupId", groupID);
   };
   const updateCompany = () => {
     const companyID = form.elements.company_id?.value ?? "";
-    [form.elements.parent_id, form.elements.asset_gl_id, form.elements.accumulated_gl_id, form.elements.expense_gl_id].forEach((select) => filterSelect(select, "companyId", companyID, select?.name !== "asset_gl_id"));
+    [form.elements.parent_id, form.elements.gl_account_id].forEach((select) => filterSelect(select, "companyId", companyID));
     updateGroup();
     filterSelect(form.elements.depreciation_policy_id, "companyId", companyID);
   };
   form.elements.company_group_id?.addEventListener("change", updateGroup);
   form.elements.company_id?.addEventListener("change", updateCompany);
   updateCompany();
+});
+
+// Mapping accounting hanya menampilkan hubungan kebijakan dengan satu akun GL.
+document.querySelectorAll('[data-edit-support][data-depreciation-policy-id]').forEach((button) => {
+  const row = button.closest("tr");
+  const accountCell = row?.querySelector("td:nth-last-child(3)");
+  if (!accountCell) return;
+  accountCell.textContent = button.dataset.glaccountname || "";
 });
 
 document.querySelectorAll("[data-edit-aspect]").forEach((button) => {

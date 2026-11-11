@@ -42,22 +42,24 @@ SET @status_in_use = (SELECT id FROM asset_statuses WHERE code='IN-USE' LIMIT 1)
 SET @status_available = (SELECT id FROM asset_statuses WHERE code='AVAILABLE' LIMIT 1);
 SET @vendor_tech = (SELECT id FROM vendors WHERE company_group_id=@group_id AND code='VND-TECH' LIMIT 1);
 SET @vendor_general = (SELECT id FROM vendors WHERE company_group_id=@group_id AND code='VND-GENERAL' LIMIT 1);
+SET @department_it = (SELECT id FROM departments WHERE group_id=@group_id AND code='IT' LIMIT 1);
+SET @department_fin = (SELECT id FROM departments WHERE group_id=@group_id AND code='FIN' LIMIT 1);
 
 INSERT INTO assets(
-  company_id,branch_id,asset_location_id,asset_type_id,asset_brand_id,asset_model_id,
+  company_id,branch_id,asset_location_id,department_id,asset_type_id,asset_brand_id,asset_model_id,
   asset_variant_id,condition_id,status_id,vendor_id,asset_number,name,serial_number,
   barcode,description,acquisition_date,acquisition_cost,warranty_until,notes
 ) VALUES
-(@company_id,@branch_id,@location_programmer,@type_laptop,@brand_lenovo,@model_thinkpad,
+(@company_id,@branch_id,@location_programmer,@department_it,@type_laptop,@brand_lenovo,@model_thinkpad,
  @variant_thinkpad,@condition_good,@status_in_use,@vendor_tech,'AST-MK5-0001',
  'Laptop Programmer 01','PF4MK50001','8990000000001','Laptop kerja tim programmer',
  '2026-01-15',14500000.00,'2029-01-15','Dummy asset development'),
-(@company_id,@branch_id,@location_akuntansi,@type_desk,@brand_ikea,@model_bekant,
+(@company_id,@branch_id,@location_akuntansi,@department_fin,@type_desk,@brand_ikea,@model_bekant,
  @variant_bekant,@condition_good,@status_available,@vendor_general,'AST-MK5-0002',
  'Meja Kerja Akuntansi 01','BKT-MK5-0001','8990000000002','Meja kerja untuk ruang akuntansi',
  '2026-02-10',4250000.00,NULL,'Dummy asset development')
 ON DUPLICATE KEY UPDATE
-  company_id=VALUES(company_id),branch_id=VALUES(branch_id),asset_location_id=VALUES(asset_location_id),
+  company_id=VALUES(company_id),branch_id=VALUES(branch_id),asset_location_id=VALUES(asset_location_id),department_id=VALUES(department_id),
   asset_type_id=VALUES(asset_type_id),asset_brand_id=VALUES(asset_brand_id),asset_model_id=VALUES(asset_model_id),
   asset_variant_id=VALUES(asset_variant_id),condition_id=VALUES(condition_id),status_id=VALUES(status_id),
   vendor_id=VALUES(vendor_id),name=VALUES(name),serial_number=VALUES(serial_number),

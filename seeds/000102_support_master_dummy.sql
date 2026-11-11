@@ -63,10 +63,10 @@ SET @mapping_policy_1 = (SELECT id FROM asset_depreciation_policies WHERE compan
 SET @mapping_policy_2 = (SELECT id FROM asset_depreciation_policies WHERE company_group_id=@group_id AND company_id IS NULL AND asset_type_id=@type_2 AND book_type='ACCOUNTING' ORDER BY effective_from DESC LIMIT 1);
 SET @mapping_policy_3 = (SELECT id FROM asset_depreciation_policies WHERE company_group_id=@group_id AND company_id IS NULL AND asset_type_id=@type_3 AND book_type='ACCOUNTING' ORDER BY effective_from DESC LIMIT 1);
 
-INSERT INTO asset_accounting_mappings(company_id,depreciation_policy_id,asset_gl_account_id,accumulated_depreciation_gl_account_id,depreciation_expense_gl_account_id,is_active) VALUES
-(@company_id,@mapping_policy_1,@gl_asset,@gl_accumulated,@gl_expense,1),
-(@company_id,@mapping_policy_2,@gl_asset,@gl_accumulated,@gl_expense,1),
-(@company_id,@mapping_policy_3,@gl_asset,@gl_accumulated,@gl_expense,1)
-ON DUPLICATE KEY UPDATE asset_gl_account_id=VALUES(asset_gl_account_id),accumulated_depreciation_gl_account_id=VALUES(accumulated_depreciation_gl_account_id),depreciation_expense_gl_account_id=VALUES(depreciation_expense_gl_account_id),is_active=VALUES(is_active);
+INSERT INTO asset_accounting_mappings(company_id,depreciation_policy_id,gl_account_id,is_active) VALUES
+(@company_id,@mapping_policy_1,@gl_asset,1),
+(@company_id,@mapping_policy_2,@gl_asset,1),
+(@company_id,@mapping_policy_3,@gl_asset,1)
+ON DUPLICATE KEY UPDATE gl_account_id=VALUES(gl_account_id),is_active=VALUES(is_active);
 
 COMMIT;
