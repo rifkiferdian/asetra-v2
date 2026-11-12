@@ -7,8 +7,7 @@
 # Hasil build Go dan file sementara Air; .air.toml tetap masuk Git.
 /bin/
 /tmp/
-/dist/*
-!/dist/asetra-windows-amd64-portable.zip
+/dist/
 *.exe
 *.exe~
 *.test
