@@ -1,6 +1,7 @@
 package assetlocationreport
 
 type Asset struct {
+	LocationID uint64
 	ID         uint64
 	Number     string
 	Name       string
@@ -15,6 +16,7 @@ type Asset struct {
 }
 
 type Area struct {
+	ID     uint64
 	Name   string
 	Assets []Asset
 }

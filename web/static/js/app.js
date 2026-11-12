@@ -807,6 +807,7 @@ document.querySelectorAll("[data-access-filter]").forEach((filter) => {
   const parent = filter.querySelector("[data-filter-parent]");
   const type = filter.querySelector("[data-filter-type]");
   const level = filter.querySelector("[data-filter-level]");
+  const amountSort = filter.querySelector("[data-sort-amount]");
   const count = filter.querySelector("[data-filter-count]");
   const rows = [...table.querySelectorAll("[data-filter-row]")];
   const empty = table.querySelector("[data-filter-empty]");
@@ -875,6 +876,7 @@ document.querySelectorAll("[data-access-filter]").forEach((filter) => {
     const selectedParent = parent?.value ?? "";
     const selectedType = type?.value ?? "";
     const selectedLevel = level?.value ?? "";
+    const selectedAmountSort = amountSort?.value ?? "";
     const filteredRows = rows.filter((row) => {
       const matchesSearch = (row.dataset.filterSearch ?? "").toLowerCase().includes(query);
       const matchesGuard = !selectedGuard || row.dataset.filterGuard === selectedGuard;
@@ -886,6 +888,14 @@ document.querySelectorAll("[data-access-filter]").forEach((filter) => {
       const matchesLevel = !selectedLevel || typeAndLevel.trim().endsWith(`Level ${selectedLevel}`);
       return matchesSearch && matchesGuard && matchesExtra && matchesDepartment && matchesParent && matchesType && matchesLevel;
     });
+    if (selectedAmountSort) {
+      filteredRows.sort((left, right) => {
+        const difference = Number(left.dataset.filterAmount ?? 0) - Number(right.dataset.filterAmount ?? 0);
+        return selectedAmountSort === "asc" ? difference : -difference;
+      });
+    }
+    const rowContainer = rows[0]?.parentElement;
+    filteredRows.forEach((row) => rowContainer?.append(row));
     const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
     currentPage = Math.min(currentPage, totalPages);
     const pageStart = (currentPage - 1) * pageSize;
@@ -908,6 +918,7 @@ document.querySelectorAll("[data-access-filter]").forEach((filter) => {
   parent?.addEventListener("change", () => applyAccessFilter(true));
   type?.addEventListener("change", () => applyAccessFilter(true));
   level?.addEventListener("change", () => applyAccessFilter(true));
+  amountSort?.addEventListener("change", () => applyAccessFilter(true));
   applyAccessFilter();
 });
 
@@ -918,6 +929,79 @@ document.querySelectorAll("[data-permission-select]").forEach((button) => {
     updatePermissionCounters();
   });
 });
+
+document.querySelectorAll("[data-print-location-qr]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const printWindow = window.open("", "_blank", "width=520,height=680");
+    if (!printWindow) return;
+
+    const document = printWindow.document;
+    document.title = `QR Lokasi - ${button.dataset.qrTitle ?? "Lokasi"}`;
+    const style = document.createElement("style");
+    style.textContent = "@page{size:A6 portrait;margin:7mm}*{box-sizing:border-box}body{margin:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a}.cut-line{min-height:134mm;border:1px dashed #cbd5e1;padding:3mm}.label{position:relative;min-height:126mm;overflow:hidden;border:1.5px solid #e2e8f0;border-radius:18px;background:#fff;text-align:center;box-shadow:0 8px 24px rgba(15,23,42,.08)}.accent{height:7px;background:linear-gradient(90deg,#fb923c,#f97316,#fbbf24)}.content{display:flex;min-height:122mm;flex-direction:column;align-items:center;padding:14px 16px 12px}.brand{display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;border-radius:999px;background:#fff7ed;padding:6px 10px;color:#ea580c;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.brand-dot{width:7px;height:7px;border-radius:50%;background:#f97316}h1{max-width:100%;margin:0;font-size:23px;line-height:1.15;overflow-wrap:anywhere}.subtitle{margin:6px 0 12px;color:#64748b;font-size:11px}.qr-frame{position:relative;border:2px solid #fed7aa;border-radius:16px;background:#fff;padding:8px;box-shadow:0 5px 14px rgba(249,115,22,.12)}.qr-frame:before,.qr-frame:after{content:'';position:absolute;width:15px;height:15px;border-color:#f97316}.qr-frame:before{top:-3px;left:-3px;border-top:3px solid #f97316;border-left:3px solid #f97316;border-radius:5px 0 0}.qr-frame:after{right:-3px;bottom:-3px;border-right:3px solid #f97316;border-bottom:3px solid #f97316;border-radius:0 0 5px}img{display:block;width:205px;height:205px}.scan{margin-top:12px;border-radius:10px;background:#0f172a;padding:8px 14px;color:#fff;font-size:10px;font-weight:700}.hint{margin-top:8px;color:#94a3b8;font-size:9px;line-height:1.4}.footer{margin-top:auto;padding-top:9px;color:#cbd5e1;font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}@media print{body{background:#fff}.label{box-shadow:none}.cut-line{border-color:#cbd5e1}}";
+    document.head.append(style);
+
+    const cutLine = document.createElement("div");
+    cutLine.className = "cut-line";
+    const label = document.createElement("main");
+    label.className = "label";
+    const accent = document.createElement("div");
+    accent.className = "accent";
+    const content = document.createElement("div");
+    content.className = "content";
+    const brand = document.createElement("div");
+    brand.className = "brand";
+    const brandDot = document.createElement("span");
+    brandDot.className = "brand-dot";
+    brand.append(brandDot, "QR Lokasi Aset");
+    const title = document.createElement("h1");
+    title.textContent = button.dataset.qrTitle ?? "Lokasi";
+    const subtitle = document.createElement("p");
+    subtitle.className = "subtitle";
+    subtitle.textContent = button.dataset.qrSubtitle ?? "";
+    const qrFrame = document.createElement("div");
+    qrFrame.className = "qr-frame";
+    const image = document.createElement("img");
+    image.alt = "QR Code Lokasi";
+    image.src = button.dataset.qrUrl ?? "";
+    qrFrame.append(image);
+    const scan = document.createElement("div");
+    scan.className = "scan";
+    scan.textContent = "Pindai untuk melihat aset di lokasi ini";
+    const hint = document.createElement("p");
+    hint.className = "hint";
+    hint.textContent = "Arahkan kamera ponsel ke QR Code";
+    const footer = document.createElement("div");
+    footer.className = "footer";
+    footer.textContent = "ASETRA · Asset Management";
+    content.append(brand, title, subtitle, qrFrame, scan, hint, footer);
+    label.append(accent, content);
+    cutLine.append(label);
+    document.body.append(cutLine);
+    image.addEventListener("load", () => {
+      printWindow.focus();
+      printWindow.print();
+    });
+  });
+});
+
+const locationFloorButton = document.querySelector('[data-open-dialog="locationFloorPlan"]');
+const locationQRPrintButton = document.querySelector("[data-print-location-qr]");
+if (locationFloorButton && locationQRPrintButton) {
+  const previousContainer = locationFloorButton.parentElement;
+  const qrCard = locationQRPrintButton.closest("aside");
+  const qrGrid = qrCard?.parentElement;
+  const rightColumn = document.createElement("div");
+  rightColumn.className = "grid self-start gap-3";
+  const actionContainer = document.createElement("div");
+  locationFloorButton.classList.add("w-full", "justify-center");
+  actionContainer.append(locationFloorButton);
+  if (qrCard && qrGrid) {
+    qrGrid.insertBefore(rightColumn, qrCard);
+    rightColumn.append(qrCard, actionContainer);
+  }
+  if (previousContainer && previousContainer !== actionContainer) previousContainer.remove();
+}
 
 function updatePermissionCounters() {
   const inputs = [...document.querySelectorAll('input[name="permission_ids"]')];

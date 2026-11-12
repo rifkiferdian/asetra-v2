@@ -40,13 +40,13 @@
 
           <section class="rounded-2xl bg-white p-6 shadow-sm">
             <h2 class="font-bold"><i class="fa-solid fa-wallet mr-2 text-orange-500"></i>Perolehan</h2>
-            <dl class="mt-5 grid gap-5 sm:grid-cols-2">{{template "assetDetailItem" dict "Label" "Tanggal perolehan" "Value" .Asset.AcquisitionDate}}{{template "assetDetailItem" dict "Label" "Nilai perolehan" "Value" .Asset.AcquisitionCost}}{{template "assetDetailItem" dict "Label" "Vendor" "Value" .Asset.VendorName}}{{template "assetDetailItem" dict "Label" "Garansi sampai" "Value" .Asset.WarrantyUntil}}</dl>
+            <dl class="mt-5 grid gap-5 sm:grid-cols-2">{{template "assetDetailItem" dict "Label" "Tanggal perolehan" "Value" (formatDate .Asset.AcquisitionDate)}}{{template "assetDetailItem" dict "Label" "Nilai perolehan" "Value" (formatRupiah .Asset.AcquisitionCost)}}{{template "assetDetailItem" dict "Label" "Vendor" "Value" .Asset.VendorName}}{{template "assetDetailItem" dict "Label" "Garansi sampai" "Value" (formatDate .Asset.WarrantyUntil)}}</dl>
           </section>
         </div>
 
         <aside class="space-y-5">
           <section class="rounded-2xl bg-white p-6 shadow-sm"><h2 class="font-bold"><i class="fa-solid fa-location-dot mr-2 text-orange-500"></i>Penempatan</h2><dl class="mt-5 space-y-5">{{template "assetDetailItem" dict "Label" "Company" "Value" .Asset.CompanyName}}{{template "assetDetailItem" dict "Label" "Branch" "Value" .Asset.BranchName}}{{template "assetDetailItem" dict "Label" "Lokasi" "Value" .Asset.LocationPath}}</dl></section>
-          <section class="rounded-2xl bg-white p-6 shadow-sm"><h2 class="font-bold"><i class="fa-solid fa-clock-rotate-left mr-2 text-orange-500"></i>Informasi Sistem</h2><dl class="mt-5 space-y-5">{{template "assetDetailItem" dict "Label" "Dibuat" "Value" .Asset.CreatedAt}}{{template "assetDetailItem" dict "Label" "Diperbarui" "Value" .Asset.UpdatedAt}}</dl></section>
+          <section class="rounded-2xl bg-white p-6 shadow-sm"><h2 class="font-bold"><i class="fa-solid fa-clock-rotate-left mr-2 text-orange-500"></i>Informasi Sistem</h2><dl class="mt-5 space-y-5">{{template "assetDetailItem" dict "Label" "Dibuat" "Value" (formatDateTime .Asset.CreatedAt)}}{{template "assetDetailItem" dict "Label" "Diperbarui" "Value" (formatDateTime .Asset.UpdatedAt)}}</dl></section>
         </aside>
       </div>
 
