@@ -45,6 +45,129 @@ function createFallingLeaves() {
 
 createFallingLeaves();
 
+document.querySelectorAll("[data-location-qr-scanner]").forEach((scanner) => {
+  const video = scanner.querySelector("[data-qr-video]");
+  const placeholder = scanner.querySelector("[data-qr-placeholder]");
+  const frame = scanner.querySelector("[data-qr-frame]");
+  const startButton = scanner.querySelector("[data-qr-start]");
+  const stopButton = scanner.querySelector("[data-qr-stop]");
+  const status = scanner.querySelector("[data-qr-status]");
+  const manualForm = scanner.querySelector("[data-qr-manual-form]");
+  const manualInput = scanner.querySelector("[data-qr-manual-input]");
+  const manualError = scanner.querySelector("[data-qr-manual-error]");
+  let stream;
+  let detector;
+  let animationFrame;
+  let scanning = false;
+  let lastDetection = 0;
+
+  const locationPath = (value) => {
+    const rawValue = String(value ?? "").trim();
+    if (/^\d+$/.test(rawValue) && Number(rawValue) > 0) return `/reports/assets-by-location/${rawValue}`;
+    try {
+      const url = new URL(rawValue, window.location.origin);
+      const match = url.pathname.match(/^\/reports\/assets-by-location\/(\d+)\/?$/);
+      return match && Number(match[1]) > 0 ? `/reports/assets-by-location/${match[1]}` : "";
+    } catch {
+      return "";
+    }
+  };
+
+  const stopCamera = () => {
+    scanning = false;
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+    stream?.getTracks().forEach((track) => track.stop());
+    stream = undefined;
+    if (video) video.srcObject = null;
+    placeholder?.classList.remove("hidden");
+    frame?.classList.add("hidden");
+    startButton?.classList.remove("hidden");
+    stopButton?.classList.add("hidden");
+    stopButton?.classList.remove("inline-flex");
+  };
+
+  const openScanResult = (rawValue) => {
+    const path = locationPath(rawValue);
+    if (!path) {
+      if (status) {
+        status.textContent = "QR terbaca, tetapi bukan QR lokasi ASETRA.";
+        status.className = "text-xs font-semibold text-amber-400";
+      }
+      return false;
+    }
+    scanning = false;
+    if (status) {
+      status.textContent = "Lokasi ditemukan. Membuka detail…";
+      status.className = "text-xs font-semibold text-emerald-400";
+    }
+    window.location.assign(path);
+    return true;
+  };
+
+  const detectFrame = async (timestamp) => {
+    if (!scanning || !detector || !video) return;
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && timestamp - lastDetection > 250) {
+      lastDetection = timestamp;
+      try {
+        const codes = await detector.detect(video);
+        if (codes[0] && openScanResult(codes[0].rawValue)) return;
+      } catch {
+        // A frame can become unavailable while the camera is stopping.
+      }
+    }
+    animationFrame = requestAnimationFrame(detectFrame);
+  };
+
+  startButton?.addEventListener("click", async () => {
+    if (!("BarcodeDetector" in window) || !navigator.mediaDevices?.getUserMedia) {
+      if (status) {
+        status.textContent = "Browser belum mendukung pemindai QR. Gunakan Chrome/Edge terbaru atau input manual.";
+        status.className = "text-xs font-semibold text-amber-400";
+      }
+      return;
+    }
+    try {
+      detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      video.srcObject = stream;
+      await video.play();
+      scanning = true;
+      placeholder?.classList.add("hidden");
+      frame?.classList.remove("hidden");
+      startButton.classList.add("hidden");
+      stopButton?.classList.remove("hidden");
+      stopButton?.classList.add("inline-flex");
+      if (status) {
+        status.textContent = "Kamera aktif. Arahkan ke QR lokasi…";
+        status.className = "text-xs font-semibold text-emerald-400";
+      }
+      animationFrame = requestAnimationFrame(detectFrame);
+    } catch {
+      stopCamera();
+      if (status) {
+        status.textContent = "Kamera tidak dapat diakses. Periksa izin browser atau gunakan input manual.";
+        status.className = "text-xs font-semibold text-red-400";
+      }
+    }
+  });
+
+  stopButton?.addEventListener("click", () => {
+    stopCamera();
+    if (status) {
+      status.textContent = "Pemindaian dihentikan.";
+      status.className = "text-xs text-slate-400";
+    }
+  });
+
+  manualForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const path = locationPath(manualInput?.value);
+    manualError?.classList.toggle("hidden", Boolean(path));
+    if (path) window.location.assign(path);
+  });
+  window.addEventListener("pagehide", stopCamera, { once: true });
+});
+
 document.querySelectorAll("[data-password-toggle]").forEach((button) => {
   button.addEventListener("click", () => {
     const input = document.getElementById(button.dataset.target);

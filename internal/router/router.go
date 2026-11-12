@@ -120,6 +120,7 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		authorized.GET("/reports/assets-by-location", auth.RequirePermission(db, "assets.view"), assetLocationReportHandler.Index)
 		authorized.GET("/reports/assets-by-location/:id", auth.RequirePermission(db, "assets.view"), assetLocationReportHandler.Detail)
 		authorized.GET("/reports/assets-by-location/:id/qr", auth.RequirePermission(db, "assets.view"), assetLocationReportHandler.QRCode)
+		authorized.GET("/tools/scan-location-qr", auth.RequirePermission(db, "assets.view"), assetLocationReportHandler.Scanner)
 		authorized.POST("/profile/name", profileHandler.UpdateName)
 		authorized.POST("/profile/password", profileHandler.UpdatePassword)
 		authorized.GET("/assessments", auth.RequirePermission(db, "trainee_assessments.view"), assessmentHandler.Index)

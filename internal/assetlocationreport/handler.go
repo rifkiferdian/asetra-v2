@@ -35,6 +35,12 @@ func (h *Handler) Index(c *gin.Context) {
 	h.render(c, http.StatusOK, "assetlocationreport/index.html", gin.H{"Title": "Rekap Aset per Lokasi", "Section": "Report", "Report": report})
 }
 
+func (h *Handler) Scanner(c *gin.Context) {
+	h.render(c, http.StatusOK, "assetlocationreport/scanner.html", gin.H{
+		"Title": "Scan QR Lokasi", "Section": "Scan QR Lokasi", "ActivePage": "location-qr-scanner",
+	})
+}
+
 func (h *Handler) Detail(c *gin.Context) {
 	id, ok := locationID(c)
 	if !ok {
@@ -95,7 +101,11 @@ func absoluteLocationURL(c *gin.Context, id uint64) string {
 
 func (h *Handler) render(c *gin.Context, status int, template string, data gin.H) {
 	user, _ := auth.CurrentUser(c)
-	menus, err := h.navigation.Menus(c.Request.Context(), user, "asset-location-report")
+	activePage := "asset-location-report"
+	if value, ok := data["ActivePage"].(string); ok && value != "" {
+		activePage = value
+	}
+	menus, err := h.navigation.Menus(c.Request.Context(), user, activePage)
 	if err != nil {
 		h.fail(c, err)
 		return
