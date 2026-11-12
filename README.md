@@ -147,6 +147,23 @@ Buka [http://127.0.0.1:8080](http://127.0.0.1:8080). Endpoint pemeriksaan aplika
 | `GET /healthz` | Memastikan proses HTTP hidup |
 | `GET /readyz` | Memastikan aplikasi dan database siap |
 
+### Paket Windows portable
+
+Buat paket Windows 64-bit menggunakan:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build-release.ps1
+```
+
+Hasil build tersedia di `dist/asetra-windows-amd64-portable.zip`. Di PC tujuan:
+
+1. Ekstrak seluruh isi ZIP.
+2. Salin `.env.example` menjadi `.env`, lalu isi `SESSION_SECRET` dan koneksi MySQL.
+3. Siapkan database menggunakan `database/asetra_starter.sql` jika belum tersedia.
+4. Jalankan `asetra.exe` dan buka `http://127.0.0.1:8080`.
+
+PC tujuan tidak memerlukan Go atau Node.js. Folder `web` dan `node_modules` di dalam paket harus tetap berada di samping `asetra.exe`. MySQL/MariaDB tetap harus tersedia atau dapat diakses melalui jaringan.
+
 Untuk mengembangkan CSS:
 
 ```powershell

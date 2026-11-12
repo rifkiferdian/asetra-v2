@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
+	_ "time/tzdata"
 
 	"asetra/internal/config"
 	"asetra/internal/database"
@@ -26,12 +28,19 @@ func main() {
 }
 
 func run() error {
+	root, err := runtimeRoot()
+	if err != nil {
+		return err
+	}
+	if err := os.Chdir(root); err != nil {
+		return fmt.Errorf("set runtime directory: %w", err)
+	}
 	jakarta, err := time.LoadLocation("Asia/Jakarta")
 	if err != nil {
 		return fmt.Errorf("load Jakarta timezone: %w", err)
 	}
 	time.Local = jakarta
-	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
+	if err := godotenv.Load(filepath.Join(root, ".env")); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("load .env: %w", err)
 	}
 	cfg, err := config.Load()
@@ -48,7 +57,7 @@ func run() error {
 		}
 		defer db.Close()
 	}
-	r, err := router.New(cfg, db, "web")
+	r, err := router.New(cfg, db, filepath.Join(root, "web"))
 	if err != nil {
 		return err
 	}
@@ -77,4 +86,22 @@ func run() error {
 		}
 		return nil
 	}
+}
+
+func runtimeRoot() (string, error) {
+	workingDirectory, err := os.Getwd()
+	if err == nil {
+		if info, statErr := os.Stat(filepath.Join(workingDirectory, "web", "templates")); statErr == nil && info.IsDir() {
+			return workingDirectory, nil
+		}
+	}
+	executable, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("locate executable: %w", err)
+	}
+	executableDirectory := filepath.Dir(executable)
+	if info, statErr := os.Stat(filepath.Join(executableDirectory, "web", "templates")); statErr == nil && info.IsDir() {
+		return executableDirectory, nil
+	}
+	return "", fmt.Errorf("runtime folder not found: place the executable beside the web folder")
 }
