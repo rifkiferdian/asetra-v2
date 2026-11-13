@@ -193,6 +193,9 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 			if kind == "types" {
 				master.POST("/assets/types/:id/brands", auth.RequirePermission(db, "asset_types.update"), withKind(assetMasterHandler.UpdateTypeBrands))
 			}
+			if kind == "brands" {
+				master.POST("/assets/brands/:id/types", auth.RequirePermission(db, "asset_brands.update"), withKind(assetMasterHandler.UpdateBrandTypes))
+			}
 		}
 		for _, support := range []struct{ kind, permission string }{{"conditions", "asset_conditions"}, {"statuses", "asset_statuses"}, {"vendors", "vendors"}, {"depreciation-methods", "depreciation_methods"}, {"depreciation-rates", "depreciation_rates"}, {"depreciation-policies", "asset_depreciation_policies"}, {"gl-accounts", "gl_accounts"}, {"accounting-mappings", "asset_accounting_mappings"}} {
 			kind, permission := support.kind, support.permission

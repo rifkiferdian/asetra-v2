@@ -470,6 +470,25 @@ document.querySelectorAll("[data-edit-type-brands]").forEach((button) => {
   });
 });
 
+document.querySelectorAll("[data-edit-brand-types]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const dialog = document.getElementById(button.dataset.dialog);
+    const form = dialog?.querySelector("[data-brand-types-form]");
+    if (!dialog || !form) return;
+    form.action = button.dataset.action ?? "";
+    const selected = new Set((button.dataset.typeIds ?? "").split(",").filter(Boolean));
+    dialog.querySelector("[data-brand-types-name]").textContent = button.dataset.name ?? "";
+    dialog.querySelectorAll("[data-brand-type-option]").forEach((option) => {
+      const visible = option.dataset.groupId === button.dataset.groupId;
+      option.classList.toggle("hidden", !visible);
+      const checkbox = option.querySelector('input[type="checkbox"]');
+      checkbox.disabled = !visible;
+      checkbox.checked = visible && selected.has(checkbox.value);
+    });
+    dialog.showModal();
+  });
+});
+
 document.querySelectorAll("#createAssetMasterDialog form, #editAssetMasterDialog form").forEach((form) => {
   const group = form.elements.group_id;
   const filterRelations = () => {

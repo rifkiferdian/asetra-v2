@@ -27,6 +27,8 @@ func (s *Service) Parents(ctx context.Context, kind string) ([]Option, error) {
 	switch kind {
 	case "types":
 		return s.repository.Categories(ctx)
+	case "brands":
+		return s.repository.Types(ctx)
 	case "models":
 		return s.repository.Types(ctx)
 	case "variants":
@@ -52,6 +54,21 @@ func (s *Service) ReplaceTypeBrands(ctx context.Context, typeID uint64, brandIDs
 		unique = append(unique, id)
 	}
 	return mapDB(s.repository.ReplaceTypeBrands(ctx, typeID, unique))
+}
+func (s *Service) ReplaceBrandTypes(ctx context.Context, brandID uint64, typeIDs []uint64) error {
+	if brandID == 0 {
+		return ErrInvalid
+	}
+	seen := make(map[uint64]bool, len(typeIDs))
+	unique := make([]uint64, 0, len(typeIDs))
+	for _, id := range typeIDs {
+		if id == 0 || seen[id] {
+			continue
+		}
+		seen[id] = true
+		unique = append(unique, id)
+	}
+	return mapDB(s.repository.ReplaceBrandTypes(ctx, brandID, unique))
 }
 func (s *Service) Create(ctx context.Context, kind string, x Input) error {
 	x = normalize(x)

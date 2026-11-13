@@ -69,11 +69,11 @@ func (r *Repository) RelationsValid(ctx context.Context, kind string, x Input) (
 
 func (r *Repository) Items(ctx context.Context, kind string) ([]Item, error) {
 	queries := map[string]string{
-		"categories": `SELECT x.id,x.group_id,0,0,g.name,'','',x.code,x.name,COALESCE(x.description,''),'',x.is_active FROM asset_categories x JOIN company_groups g ON g.id=x.group_id ORDER BY g.name,x.name`,
-		"types":      `SELECT x.id,c.group_id,x.asset_category_id,0,g.name,c.name,COALESCE(GROUP_CONCAT(b.name ORDER BY b.name SEPARATOR ', '),''),x.code,x.name,COALESCE(x.description,''),COALESCE(GROUP_CONCAT(b.id ORDER BY b.name),''),x.is_active FROM asset_types x JOIN asset_categories c ON c.id=x.asset_category_id JOIN company_groups g ON g.id=c.group_id LEFT JOIN asset_type_brands tb ON tb.asset_type_id=x.id LEFT JOIN asset_brands b ON b.id=tb.asset_brand_id GROUP BY x.id,c.group_id,x.asset_category_id,g.name,c.name,x.code,x.name,x.description,x.is_active ORDER BY g.name,c.name,x.name`,
-		"brands":     `SELECT x.id,x.group_id,0,0,g.name,'','',x.code,x.name,COALESCE(x.description,''),'',x.is_active FROM asset_brands x JOIN company_groups g ON g.id=x.group_id ORDER BY g.name,x.name`,
-		"models":     `SELECT x.id,c.group_id,x.asset_type_id,COALESCE(x.asset_brand_id,0),g.name,t.name,COALESCE(b.name,''),x.code,x.name,COALESCE(x.description,''),'',x.is_active FROM asset_models x JOIN asset_types t ON t.id=x.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id LEFT JOIN asset_brands b ON b.id=x.asset_brand_id ORDER BY g.name,t.name,x.name`,
-		"variants":   `SELECT x.id,c.group_id,x.asset_model_id,0,g.name,m.name,'',x.code,x.name,COALESCE(x.description,''),'',x.is_active FROM asset_variants x JOIN asset_models m ON m.id=x.asset_model_id JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id ORDER BY g.name,m.name,x.name`,
+		"categories": `SELECT x.id,x.group_id,0,0,g.name,'','',x.code,x.name,COALESCE(x.description,''),'','',x.is_active FROM asset_categories x JOIN company_groups g ON g.id=x.group_id ORDER BY g.name,x.name`,
+		"types":      `SELECT x.id,c.group_id,x.asset_category_id,0,g.name,c.name,COALESCE(GROUP_CONCAT(b.name ORDER BY b.name SEPARATOR ', '),''),x.code,x.name,COALESCE(x.description,''),COALESCE(GROUP_CONCAT(b.id ORDER BY b.name),''),'',x.is_active FROM asset_types x JOIN asset_categories c ON c.id=x.asset_category_id JOIN company_groups g ON g.id=c.group_id LEFT JOIN asset_type_brands tb ON tb.asset_type_id=x.id LEFT JOIN asset_brands b ON b.id=tb.asset_brand_id GROUP BY x.id,c.group_id,x.asset_category_id,g.name,c.name,x.code,x.name,x.description,x.is_active ORDER BY g.name,c.name,x.name`,
+		"brands":     `SELECT x.id,x.group_id,0,0,g.name,COALESCE(GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', '),''),'',x.code,x.name,COALESCE(x.description,''),'',COALESCE(GROUP_CONCAT(t.id ORDER BY t.name),''),x.is_active FROM asset_brands x JOIN company_groups g ON g.id=x.group_id LEFT JOIN asset_type_brands tb ON tb.asset_brand_id=x.id LEFT JOIN asset_types t ON t.id=tb.asset_type_id GROUP BY x.id,x.group_id,g.name,x.code,x.name,x.description,x.is_active ORDER BY g.name,x.name`,
+		"models":     `SELECT x.id,c.group_id,x.asset_type_id,COALESCE(x.asset_brand_id,0),g.name,t.name,COALESCE(b.name,''),x.code,x.name,COALESCE(x.description,''),'','',x.is_active FROM asset_models x JOIN asset_types t ON t.id=x.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id LEFT JOIN asset_brands b ON b.id=x.asset_brand_id ORDER BY g.name,t.name,x.name`,
+		"variants":   `SELECT x.id,c.group_id,x.asset_model_id,0,g.name,m.name,'',x.code,x.name,COALESCE(x.description,''),'','',x.is_active FROM asset_variants x JOIN asset_models m ON m.id=x.asset_model_id JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id ORDER BY g.name,m.name,x.name`,
 	}
 	query, ok := queries[kind]
 	if !ok {
@@ -87,7 +87,7 @@ func (r *Repository) Items(ctx context.Context, kind string) ([]Item, error) {
 	var items []Item
 	for rows.Next() {
 		var x Item
-		if err := rows.Scan(&x.ID, &x.GroupID, &x.ParentID, &x.BrandID, &x.GroupName, &x.ParentName, &x.BrandName, &x.Code, &x.Name, &x.Description, &x.BrandIDs, &x.IsActive); err != nil {
+		if err := rows.Scan(&x.ID, &x.GroupID, &x.ParentID, &x.BrandID, &x.GroupName, &x.ParentName, &x.BrandName, &x.Code, &x.Name, &x.Description, &x.BrandIDs, &x.TypeIDs, &x.IsActive); err != nil {
 			return nil, err
 		}
 		items = append(items, x)
@@ -149,6 +149,67 @@ func (r *Repository) ReplaceTypeBrands(ctx context.Context, typeID uint64, brand
 		return err
 	}
 	for _, brandID := range brandIDs {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO asset_type_brands(asset_type_id,asset_brand_id) VALUES(?,?)`, typeID, brandID); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+func (r *Repository) ReplaceBrandTypes(ctx context.Context, brandID uint64, typeIDs []uint64) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var groupID uint64
+	if err := tx.QueryRowContext(ctx, `SELECT group_id FROM asset_brands WHERE id=? FOR UPDATE`, brandID).Scan(&groupID); err != nil {
+		return err
+	}
+	if len(typeIDs) > 0 {
+		placeholders := make([]string, len(typeIDs))
+		args := make([]any, 0, len(typeIDs)+1)
+		args = append(args, groupID)
+		for i, id := range typeIDs {
+			placeholders[i] = "?"
+			args = append(args, id)
+		}
+		var count int
+		if err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id WHERE c.group_id=? AND t.id IN (`+strings.Join(placeholders, ",")+`)`, args...).Scan(&count); err != nil {
+			return err
+		}
+		if count != len(typeIDs) {
+			return ErrInvalid
+		}
+	}
+	selected := make(map[uint64]bool, len(typeIDs))
+	for _, id := range typeIDs {
+		selected[id] = true
+	}
+	usedRows, err := tx.QueryContext(ctx, `SELECT asset_type_id FROM asset_models WHERE asset_brand_id=? UNION SELECT asset_type_id FROM assets WHERE asset_brand_id=?`, brandID, brandID)
+	if err != nil {
+		return err
+	}
+	for usedRows.Next() {
+		var id uint64
+		if err := usedRows.Scan(&id); err != nil {
+			usedRows.Close()
+			return err
+		}
+		if !selected[id] {
+			usedRows.Close()
+			return ErrInUse
+		}
+	}
+	if err := usedRows.Err(); err != nil {
+		usedRows.Close()
+		return err
+	}
+	usedRows.Close()
+	if _, err := tx.ExecContext(ctx, `DELETE FROM asset_type_brands WHERE asset_brand_id=?`, brandID); err != nil {
+		return err
+	}
+	for _, typeID := range typeIDs {
 		if _, err := tx.ExecContext(ctx, `INSERT INTO asset_type_brands(asset_type_id,asset_brand_id) VALUES(?,?)`, typeID, brandID); err != nil {
 			return err
 		}

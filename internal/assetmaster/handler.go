@@ -128,6 +128,28 @@ func (h *Handler) UpdateTypeBrands(c *gin.Context) {
 	}
 	h.result(c, h.service.ReplaceTypeBrands(c.Request.Context(), id, brandIDs), "brands-updated")
 }
+func (h *Handler) UpdateBrandTypes(c *gin.Context) {
+	if !auth.ValidCSRF(c, c.PostForm("csrf_token")) {
+		h.redirect(c, "error", "csrf")
+		return
+	}
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil || id == 0 {
+		h.redirect(c, "error", "invalid")
+		return
+	}
+	values := c.PostFormArray("type_ids")
+	typeIDs := make([]uint64, 0, len(values))
+	for _, value := range values {
+		parsed, parseErr := strconv.ParseUint(value, 10, 64)
+		if parseErr != nil {
+			h.redirect(c, "error", "invalid")
+			return
+		}
+		typeIDs = append(typeIDs, parsed)
+	}
+	h.result(c, h.service.ReplaceBrandTypes(c.Request.Context(), id, typeIDs), "types-updated")
+}
 func uintForm(c *gin.Context, key string) uint64 {
 	v, _ := strconv.ParseUint(c.PostForm(key), 10, 64)
 	return v
@@ -201,5 +223,5 @@ func initials(name string) string {
 	return v
 }
 func message(code string) string {
-	return map[string]string{"created": "Data berhasil dibuat.", "updated": "Data berhasil diperbarui.", "deleted": "Data berhasil dihapus.", "brands-updated": "Relasi brand untuk tipe aset berhasil diperbarui.", "csrf": "Sesi form berakhir. Silakan muat ulang halaman.", "invalid": "Data belum lengkap atau tidak valid.", "duplicate": "Kode sudah digunakan dalam company group tersebut.", "in-use": "Relasi data tidak valid atau data masih digunakan.", "not-found": "Data tidak ditemukan.", "failed": "Operasi gagal diproses."}[code]
+	return map[string]string{"created": "Data berhasil dibuat.", "updated": "Data berhasil diperbarui.", "deleted": "Data berhasil dihapus.", "brands-updated": "Relasi brand untuk tipe aset berhasil diperbarui.", "types-updated": "Relasi tipe untuk brand berhasil diperbarui.", "csrf": "Sesi form berakhir. Silakan muat ulang halaman.", "invalid": "Data belum lengkap atau tidak valid.", "duplicate": "Kode sudah digunakan dalam company group tersebut.", "in-use": "Relasi data tidak valid atau data masih digunakan.", "not-found": "Data tidak ditemukan.", "failed": "Operasi gagal diproses."}[code]
 }
