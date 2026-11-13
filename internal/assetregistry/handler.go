@@ -41,7 +41,20 @@ func (h *Handler) New(c *gin.Context) {
 		h.fail(c, err)
 		return
 	}
-	h.render(c, http.StatusOK, "assetregistry/form.html", gin.H{"Title": "Tambah Aset", "Section": "Data Aset", "Options": options, "Input": AssetInput{}})
+	input := AssetInput{AcquisitionDate: time.Now().Format("2006-01-02"), AcquisitionCost: "0"}
+	for _, option := range options.Conditions {
+		if option.Code == "GOOD" {
+			input.ConditionID = option.ID
+			break
+		}
+	}
+	for _, option := range options.Statuses {
+		if option.Code == "AVAILABLE" {
+			input.StatusID = option.ID
+			break
+		}
+	}
+	h.render(c, http.StatusOK, "assetregistry/form.html", gin.H{"Title": "Tambah Aset", "Section": "Data Aset", "Options": options, "Input": input})
 }
 
 func (h *Handler) Create(c *gin.Context) {

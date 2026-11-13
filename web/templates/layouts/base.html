@@ -16,7 +16,7 @@
   <script src="/static/js/app.js?v=20261112-1" defer></script>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
-  <div class="falling-leaves" aria-hidden="true"></div>
+  {{if not .HideDecorations}}<div class="falling-leaves" aria-hidden="true"></div>{{end}}
   {{if and (not .IsAuthPage) (not .IsDashboard)}}{{template "navbar" .}}{{end}}
   {{if or .IsAuthPage .IsDashboard}}
     <main>{{template "content" .}}</main>

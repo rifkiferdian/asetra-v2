@@ -1214,8 +1214,21 @@ function initializeAssetForm() {
   const brand = form.querySelector("[data-asset-brand]");
   const model = form.querySelector("[data-asset-model]");
   const variant = form.querySelector("[data-asset-variant]");
+  const acquisitionDate = form.querySelector("[data-asset-acquisition-date]");
+  const assetName = form.querySelector("[data-asset-name]");
+  const numberPreview = form.querySelector("[data-asset-number-preview]");
+  const barcodePreview = form.querySelector("[data-asset-barcode-preview]");
+  const policies = Array.from(document.querySelectorAll("[data-depreciation-policies] [data-policy]"));
+  const policyEmpty = form.querySelector("[data-policy-empty]");
+  const policyResult = form.querySelector("[data-policy-result]");
+  let nameEdited = (assetName?.value ?? "").trim() !== "";
 
   const selectedData = (select, key) => select?.selectedOptions[0]?.dataset[key] ?? "";
+  const selectedLabel = (select) => {
+    const label = select?.selectedOptions[0]?.textContent?.trim() ?? "";
+    const parts = label.split(" — ");
+    return parts[parts.length - 1] ?? "";
+  };
   const filter = (select, predicate, resetInvalid = false) => {
     if (!select) return;
     let selectedVisible = select.value === "";
@@ -1254,11 +1267,55 @@ function initializeAssetForm() {
     filter(variant, (option) => option.dataset.parent === modelID, reset);
   };
 
-  company?.addEventListener("change", () => refreshCompany(true));
+  const refreshAutomation = () => {
+    const companyCode = selectedData(company, "code");
+    const typeCode = selectedData(type, "code");
+    const year = acquisitionDate?.value?.slice(0, 4) ?? "";
+    if (companyCode && typeCode && year) {
+      const preview = `AST/${companyCode}/${typeCode}/${year}/#####`;
+      if (numberPreview) numberPreview.textContent = preview;
+      if (barcodePreview) barcodePreview.textContent = preview.replace(/[^a-z0-9]/gi, "").toUpperCase();
+    } else {
+      if (numberPreview) numberPreview.textContent = "Pilih company, tipe, dan tanggal perolehan";
+      if (barcodePreview) barcodePreview.textContent = "Dibuat dari nomor aset";
+    }
+
+    if (!nameEdited && assetName) {
+      const typeName = selectedLabel(type);
+      const modelName = selectedLabel(model);
+      const brandName = selectedLabel(brand);
+      const variantName = selectedLabel(variant);
+      assetName.value = [typeName, modelName || brandName, variantName].filter(Boolean).join(" — ");
+    }
+
+    const companyID = company?.value ?? "";
+    const groupID = selectedData(company, "group");
+    const typeID = type?.value ?? "";
+    const date = acquisitionDate?.value ?? "";
+    const matches = policies.filter((policy) => policy.dataset.type === typeID && policy.dataset.group === groupID && (!policy.dataset.company || policy.dataset.company === "0" || policy.dataset.company === companyID) && date && policy.dataset.from <= date && (!policy.dataset.to || policy.dataset.to >= date));
+    matches.sort((left, right) => Number(right.dataset.company === companyID) - Number(left.dataset.company === companyID));
+    const policy = matches[0];
+    policyEmpty?.classList.toggle("hidden", Boolean(policy));
+    policyResult?.classList.toggle("hidden", !policy);
+    policyResult?.classList.toggle("grid", Boolean(policy));
+    if (policy) {
+      form.querySelector("[data-policy-method]").textContent = policy.dataset.method;
+      form.querySelector("[data-policy-life]").textContent = `${policy.dataset.life} bulan`;
+      form.querySelector("[data-policy-rate]").textContent = `${Number(policy.dataset.rate).toLocaleString("id-ID")}%`;
+      form.querySelector("[data-policy-residual]").textContent = `${Number(policy.dataset.residual).toLocaleString("id-ID")}%`;
+    }
+  };
+
+  company?.addEventListener("change", () => { refreshCompany(true); refreshAutomation(); });
   branch?.addEventListener("change", () => refreshBranch(true));
-  type?.addEventListener("change", () => refreshType(true));
-  model?.addEventListener("change", () => refreshModel(true));
+  type?.addEventListener("change", () => { refreshType(true); refreshAutomation(); });
+  brand?.addEventListener("change", refreshAutomation);
+  model?.addEventListener("change", () => { refreshModel(true); refreshAutomation(); });
+  variant?.addEventListener("change", refreshAutomation);
+  acquisitionDate?.addEventListener("change", refreshAutomation);
+  assetName?.addEventListener("input", () => { nameEdited = assetName.value.trim() !== ""; });
   refreshCompany(false);
+  refreshAutomation();
 }
 
 initializeAssetForm();

@@ -32,13 +32,20 @@ type FormOption struct {
 	ID       uint64
 	ParentID uint64
 	GroupID  uint64
+	Code     string
 	Label    string
+}
+
+type DepreciationPreview struct {
+	CompanyID, GroupID, TypeID, UsefulLifeMonths           uint64
+	MethodName, Rate, Residual, EffectiveFrom, EffectiveTo string
 }
 
 type AssetFormOptions struct {
 	Companies, Branches, Departments, Locations []FormOption
 	Types, Brands, Models, Variants             []FormOption
 	Conditions, Statuses, Vendors               []FormOption
+	DepreciationPolicies                        []DepreciationPreview
 }
 
 type AssetInput struct {

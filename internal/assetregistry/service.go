@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -33,11 +34,11 @@ func (s *Service) Create(ctx context.Context, x AssetInput) (uint64, error) {
 	x.Description = strings.TrimSpace(x.Description)
 	x.WarrantyUntil = strings.TrimSpace(x.WarrantyUntil)
 	x.Notes = strings.TrimSpace(x.Notes)
-	if x.CompanyID == 0 || x.BranchID == 0 || x.LocationID == 0 || x.TypeID == 0 || x.ConditionID == 0 || x.StatusID == 0 || x.AssetNumber == "" || x.Name == "" {
+	if x.CompanyID == 0 || x.BranchID == 0 || x.LocationID == 0 || x.TypeID == 0 || x.ConditionID == 0 || x.StatusID == 0 || x.Name == "" {
 		return 0, fmt.Errorf("field wajib belum lengkap")
 	}
-	if len(x.AssetNumber) > 50 || len(x.Name) > 200 || len(x.SerialNumber) > 120 || len(x.Barcode) > 120 {
-		return 0, fmt.Errorf("nomor aset, nama, serial number, atau barcode terlalu panjang")
+	if len(x.Name) > 200 || len(x.SerialNumber) > 120 {
+		return 0, fmt.Errorf("nama atau serial number terlalu panjang")
 	}
 	if (x.ModelID > 0 && x.BrandID == 0) || (x.VariantID > 0 && x.ModelID == 0) {
 		return 0, fmt.Errorf("brand harus dipilih sebelum model, dan model sebelum varian")
@@ -71,6 +72,44 @@ func (s *Service) Create(ctx context.Context, x AssetInput) (uint64, error) {
 		return 0, fmt.Errorf("pilihan organisasi atau master aset tidak sesuai")
 	}
 	return 0, err
+}
+
+func (x AssetInput) acquisitionYear() int {
+	parsed, _ := time.Parse("2006-01-02", x.AcquisitionDate)
+	return parsed.Year()
+}
+
+func generatedAssetNumber(companyCode, typeCode string, year int, sequence uint64) string {
+	return fmt.Sprintf("AST/%s/%s/%04d/%05d", compactCode(companyCode, 10), compactCode(typeCode, 15), year, sequence)
+}
+
+func generatedBarcode(assetNumber string) string {
+	var result strings.Builder
+	for _, character := range assetNumber {
+		if unicode.IsLetter(character) || unicode.IsDigit(character) {
+			result.WriteRune(unicode.ToUpper(character))
+		}
+	}
+	return result.String()
+}
+
+func compactCode(value string, maximum int) string {
+	var result strings.Builder
+	for _, character := range value {
+		if unicode.IsLetter(character) || unicode.IsDigit(character) {
+			result.WriteRune(unicode.ToUpper(character))
+		} else if result.Len() > 0 && !strings.HasSuffix(result.String(), "-") {
+			result.WriteByte('-')
+		}
+	}
+	compact := strings.Trim(result.String(), "-")
+	if len(compact) > maximum {
+		compact = compact[:maximum]
+	}
+	if compact == "" {
+		return "GENERAL"
+	}
+	return compact
 }
 
 func (s *Service) Depreciation(ctx context.Context, asset Asset, asOf time.Time) (DepreciationDetail, error) {

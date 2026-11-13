@@ -58,17 +58,17 @@ func (r *Repository) FormOptions(ctx context.Context) (AssetFormOptions, error) 
 		destination *[]FormOption
 		query       string
 	}{
-		{&result.Companies, `SELECT id,group_id,0,name FROM companies WHERE is_active=1 ORDER BY name`},
-		{&result.Branches, `SELECT id,company_id,0,CONCAT(code,' — ',name) FROM branches WHERE is_active=1 ORDER BY name`},
-		{&result.Departments, `SELECT id,0,group_id,CONCAT(code,' — ',name) FROM departments WHERE is_active=1 ORDER BY name`},
-		{&result.Locations, `SELECT l.id,l.branch_id,0,CONCAT(b.code,' / ',l.code,' — ',l.name) FROM asset_locations l JOIN branches b ON b.id=l.branch_id WHERE l.is_active=1 ORDER BY b.name,l.name`},
-		{&result.Types, `SELECT t.id,0,c.group_id,CONCAT(c.name,' — ',t.name) FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id WHERE t.is_active=1 AND c.is_active=1 ORDER BY c.name,t.name`},
-		{&result.Brands, `SELECT id,0,group_id,name FROM asset_brands WHERE is_active=1 ORDER BY name`},
-		{&result.Models, `SELECT m.id,m.asset_type_id,b.group_id,CONCAT(t.name,' — ',b.name,' ',m.name) FROM asset_models m JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_brands b ON b.id=m.asset_brand_id WHERE m.is_active=1 ORDER BY t.name,m.name`},
-		{&result.Variants, `SELECT v.id,v.asset_model_id,b.group_id,CONCAT(m.name,' — ',v.name) FROM asset_variants v JOIN asset_models m ON m.id=v.asset_model_id JOIN asset_brands b ON b.id=m.asset_brand_id WHERE v.is_active=1 ORDER BY m.name,v.name`},
-		{&result.Conditions, `SELECT id,0,0,name FROM asset_conditions WHERE is_active=1 ORDER BY name`},
-		{&result.Statuses, `SELECT id,0,0,name FROM asset_statuses WHERE is_active=1 ORDER BY name`},
-		{&result.Vendors, `SELECT id,0,0,name FROM vendors WHERE is_active=1 ORDER BY name`},
+		{&result.Companies, `SELECT id,group_id,0,code,name FROM companies WHERE is_active=1 ORDER BY name`},
+		{&result.Branches, `SELECT id,company_id,0,code,CONCAT(code,' — ',name) FROM branches WHERE is_active=1 ORDER BY name`},
+		{&result.Departments, `SELECT id,0,group_id,code,CONCAT(code,' — ',name) FROM departments WHERE is_active=1 ORDER BY name`},
+		{&result.Locations, `SELECT l.id,l.branch_id,0,l.code,CONCAT(b.code,' / ',l.code,' — ',l.name) FROM asset_locations l JOIN branches b ON b.id=l.branch_id WHERE l.is_active=1 ORDER BY b.name,l.name`},
+		{&result.Types, `SELECT t.id,0,c.group_id,t.code,CONCAT(c.name,' — ',t.name) FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id WHERE t.is_active=1 AND c.is_active=1 ORDER BY c.name,t.name`},
+		{&result.Brands, `SELECT id,0,group_id,code,name FROM asset_brands WHERE is_active=1 ORDER BY name`},
+		{&result.Models, `SELECT m.id,m.asset_type_id,b.group_id,m.code,CONCAT(t.name,' — ',b.name,' ',m.name) FROM asset_models m JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_brands b ON b.id=m.asset_brand_id WHERE m.is_active=1 ORDER BY t.name,m.name`},
+		{&result.Variants, `SELECT v.id,v.asset_model_id,b.group_id,v.code,CONCAT(m.name,' — ',v.name) FROM asset_variants v JOIN asset_models m ON m.id=v.asset_model_id JOIN asset_brands b ON b.id=m.asset_brand_id WHERE v.is_active=1 ORDER BY m.name,v.name`},
+		{&result.Conditions, `SELECT id,0,0,code,name FROM asset_conditions WHERE is_active=1 ORDER BY name`},
+		{&result.Statuses, `SELECT id,0,0,code,name FROM asset_statuses WHERE is_active=1 ORDER BY name`},
+		{&result.Vendors, `SELECT id,0,0,code,name FROM vendors WHERE is_active=1 ORDER BY name`},
 	}
 	for _, item := range queries {
 		rows, err := r.db.QueryContext(ctx, item.query)
@@ -77,7 +77,7 @@ func (r *Repository) FormOptions(ctx context.Context) (AssetFormOptions, error) 
 		}
 		for rows.Next() {
 			var x FormOption
-			if err := rows.Scan(&x.ID, &x.ParentID, &x.GroupID, &x.Label); err != nil {
+			if err := rows.Scan(&x.ID, &x.ParentID, &x.GroupID, &x.Code, &x.Label); err != nil {
 				rows.Close()
 				return AssetFormOptions{}, err
 			}
@@ -88,6 +88,24 @@ func (r *Repository) FormOptions(ctx context.Context) (AssetFormOptions, error) 
 		if err != nil {
 			return AssetFormOptions{}, err
 		}
+	}
+	policyRows, err := r.db.QueryContext(ctx, `SELECT COALESCE(p.company_id,0),p.company_group_id,p.asset_type_id,r.useful_life_months,m.name,
+		CAST(r.annual_rate_percent AS CHAR),CAST(p.residual_value_percent AS CHAR),DATE_FORMAT(p.effective_from,'%Y-%m-%d'),COALESCE(DATE_FORMAT(p.effective_to,'%Y-%m-%d'),'')
+		FROM asset_depreciation_policies p JOIN depreciation_rates r ON r.id=p.depreciation_rate_id JOIN depreciation_methods m ON m.id=p.depreciation_method_id
+		WHERE p.book_type='ACCOUNTING' AND p.is_active=1 ORDER BY p.effective_from DESC,p.id DESC`)
+	if err != nil {
+		return AssetFormOptions{}, err
+	}
+	defer policyRows.Close()
+	for policyRows.Next() {
+		var x DepreciationPreview
+		if err := policyRows.Scan(&x.CompanyID, &x.GroupID, &x.TypeID, &x.UsefulLifeMonths, &x.MethodName, &x.Rate, &x.Residual, &x.EffectiveFrom, &x.EffectiveTo); err != nil {
+			return AssetFormOptions{}, err
+		}
+		result.DepreciationPolicies = append(result.DepreciationPolicies, x)
+	}
+	if err := policyRows.Err(); err != nil {
+		return AssetFormOptions{}, err
 	}
 	return result, nil
 }
@@ -120,6 +138,21 @@ func (r *Repository) Create(ctx context.Context, x AssetInput) (uint64, error) {
 	if !valid {
 		return 0, fmt.Errorf("invalid asset relations")
 	}
+	var companyCode, typeCode string
+	if err := tx.QueryRowContext(ctx, `SELECT c.code,t.code FROM companies c JOIN asset_types t ON t.id=? WHERE c.id=?`, x.TypeID, x.CompanyID).Scan(&companyCode, &typeCode); err != nil {
+		return 0, err
+	}
+	year := x.acquisitionYear()
+	if _, err := tx.ExecContext(ctx, `INSERT INTO asset_number_sequences(company_id,asset_type_id,sequence_year,last_number)
+		VALUES(?,?,?,LAST_INSERT_ID(1)) ON DUPLICATE KEY UPDATE last_number=LAST_INSERT_ID(last_number+1)`, x.CompanyID, x.TypeID, year); err != nil {
+		return 0, err
+	}
+	var sequence uint64
+	if err := tx.QueryRowContext(ctx, `SELECT LAST_INSERT_ID()`).Scan(&sequence); err != nil {
+		return 0, err
+	}
+	x.AssetNumber = generatedAssetNumber(companyCode, typeCode, year, sequence)
+	x.Barcode = generatedBarcode(x.AssetNumber)
 	result, err := tx.ExecContext(ctx, `INSERT INTO assets(
 		company_id,branch_id,asset_location_id,department_id,asset_type_id,asset_brand_id,asset_model_id,asset_variant_id,
 		condition_id,status_id,vendor_id,asset_number,name,serial_number,barcode,description,acquisition_date,acquisition_cost,warranty_until,notes

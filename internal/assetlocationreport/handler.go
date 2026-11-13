@@ -37,7 +37,7 @@ func (h *Handler) Index(c *gin.Context) {
 
 func (h *Handler) Scanner(c *gin.Context) {
 	h.render(c, http.StatusOK, "assetlocationreport/scanner.html", gin.H{
-		"Title": "Scan QR Lokasi", "Section": "Scan QR Lokasi", "ActivePage": "location-qr-scanner",
+		"Title": "Scan QR Lokasi", "Section": "Scan QR Lokasi", "ActivePage": "location-qr-scanner", "HideDecorations": true,
 	})
 }
 

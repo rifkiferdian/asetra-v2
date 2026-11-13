@@ -60,3 +60,13 @@ func TestFormatPercent(t *testing.T) {
 		}
 	}
 }
+
+func TestGeneratedAssetIdentity(t *testing.T) {
+	number := generatedAssetNumber("MK 1", "OFFICE-DESK", 2026, 12)
+	if number != "AST/MK-1/OFFICE-DESK/2026/00012" {
+		t.Fatalf("generatedAssetNumber() = %q", number)
+	}
+	if barcode := generatedBarcode(number); barcode != "ASTMK1OFFICEDESK202600012" {
+		t.Fatalf("generatedBarcode() = %q", barcode)
+	}
+}
