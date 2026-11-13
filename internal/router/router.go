@@ -117,6 +117,8 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		userHandler := userManagement.NewHandler(cfg.AppName, userManagement.NewService(userManagement.NewRepository(db)), navigationService)
 		authorized.GET("/profile", profileHandler.Index)
 		authorized.GET("/assets", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Index)
+		authorized.GET("/assets/new", auth.RequirePermission(db, "assets.create"), assetRegistryHandler.New)
+		authorized.POST("/assets", auth.RequirePermission(db, "assets.create"), assetRegistryHandler.Create)
 		authorized.GET("/assets/:id", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Detail)
 		authorized.GET("/assets/:id/qr", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.QRCode)
 		authorized.GET("/asset-depreciations", auth.RequirePermission(db, "asset_depreciations.view"), assetDepreciationHandler.Index)

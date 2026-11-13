@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 type Service struct{ repository *Repository }
@@ -17,6 +19,58 @@ func NewService(repository *Repository) *Service             { return &Service{r
 func (s *Service) List(ctx context.Context) ([]Asset, error) { return s.repository.List(ctx) }
 func (s *Service) Find(ctx context.Context, id uint64) (Asset, error) {
 	return s.repository.Find(ctx, id)
+}
+
+func (s *Service) FormOptions(ctx context.Context) (AssetFormOptions, error) {
+	return s.repository.FormOptions(ctx)
+}
+
+func (s *Service) Create(ctx context.Context, x AssetInput) (uint64, error) {
+	x.AssetNumber = strings.TrimSpace(x.AssetNumber)
+	x.Name = strings.TrimSpace(x.Name)
+	x.SerialNumber = strings.TrimSpace(x.SerialNumber)
+	x.Barcode = strings.TrimSpace(x.Barcode)
+	x.Description = strings.TrimSpace(x.Description)
+	x.WarrantyUntil = strings.TrimSpace(x.WarrantyUntil)
+	x.Notes = strings.TrimSpace(x.Notes)
+	if x.CompanyID == 0 || x.BranchID == 0 || x.LocationID == 0 || x.TypeID == 0 || x.ConditionID == 0 || x.StatusID == 0 || x.AssetNumber == "" || x.Name == "" {
+		return 0, fmt.Errorf("field wajib belum lengkap")
+	}
+	if len(x.AssetNumber) > 50 || len(x.Name) > 200 || len(x.SerialNumber) > 120 || len(x.Barcode) > 120 {
+		return 0, fmt.Errorf("nomor aset, nama, serial number, atau barcode terlalu panjang")
+	}
+	if (x.ModelID > 0 && x.BrandID == 0) || (x.VariantID > 0 && x.ModelID == 0) {
+		return 0, fmt.Errorf("brand harus dipilih sebelum model, dan model sebelum varian")
+	}
+	if _, err := time.Parse("2006-01-02", x.AcquisitionDate); err != nil {
+		return 0, fmt.Errorf("tanggal perolehan tidak valid")
+	}
+	if x.WarrantyUntil != "" {
+		warranty, err := time.Parse("2006-01-02", x.WarrantyUntil)
+		if err != nil {
+			return 0, fmt.Errorf("tanggal garansi tidak valid")
+		}
+		acquired, _ := time.Parse("2006-01-02", x.AcquisitionDate)
+		if warranty.Before(acquired) {
+			return 0, fmt.Errorf("tanggal garansi tidak boleh sebelum tanggal perolehan")
+		}
+	}
+	cost, err := strconv.ParseFloat(x.AcquisitionCost, 64)
+	if err != nil || cost < 0 {
+		return 0, fmt.Errorf("nilai perolehan tidak valid")
+	}
+	id, err := s.repository.Create(ctx, x)
+	if err == nil {
+		return id, nil
+	}
+	var mysqlErr *mysql.MySQLError
+	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+		return 0, fmt.Errorf("nomor aset atau barcode sudah digunakan")
+	}
+	if err.Error() == "invalid asset relations" {
+		return 0, fmt.Errorf("pilihan organisasi atau master aset tidak sesuai")
+	}
+	return 0, err
 }
 
 func (s *Service) Depreciation(ctx context.Context, asset Asset, asOf time.Time) (DepreciationDetail, error) {

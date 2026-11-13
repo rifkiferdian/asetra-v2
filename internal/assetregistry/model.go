@@ -27,3 +27,25 @@ type DepreciationDetail struct {
 	MonthlyDepreciation, AccumulatedDepreciation, BookValue, AsOfDate string
 	ElapsedMonths                                                     uint64
 }
+
+type FormOption struct {
+	ID       uint64
+	ParentID uint64
+	GroupID  uint64
+	Label    string
+}
+
+type AssetFormOptions struct {
+	Companies, Branches, Departments, Locations []FormOption
+	Types, Brands, Models, Variants             []FormOption
+	Conditions, Statuses, Vendors               []FormOption
+}
+
+type AssetInput struct {
+	CompanyID, BranchID, DepartmentID, LocationID uint64
+	TypeID, BrandID, ModelID, VariantID           uint64
+	ConditionID, StatusID, VendorID               uint64
+	AssetNumber, Name, SerialNumber, Barcode      string
+	Description, AcquisitionDate, AcquisitionCost string
+	WarrantyUntil, Notes                          string
+}

@@ -1201,3 +1201,64 @@ document.addEventListener("click", (event) => {
   }
   if (notificationWrapper && !notificationWrapper.contains(event.target)) notificationWrapper.removeAttribute("open");
 });
+
+function initializeAssetForm() {
+  const form = document.querySelector("[data-asset-form]");
+  if (!form) return;
+
+  const company = form.querySelector("[data-asset-company]");
+  const branch = form.querySelector("[data-asset-branch]");
+  const department = form.querySelector("[data-asset-department]");
+  const location = form.querySelector("[data-asset-location]");
+  const type = form.querySelector("[data-asset-type]");
+  const brand = form.querySelector("[data-asset-brand]");
+  const model = form.querySelector("[data-asset-model]");
+  const variant = form.querySelector("[data-asset-variant]");
+
+  const selectedData = (select, key) => select?.selectedOptions[0]?.dataset[key] ?? "";
+  const filter = (select, predicate, resetInvalid = false) => {
+    if (!select) return;
+    let selectedVisible = select.value === "";
+    Array.from(select.options).forEach((option, index) => {
+      if (index === 0) return;
+      const visible = predicate(option);
+      option.hidden = !visible;
+      option.disabled = !visible;
+      if (option.selected && visible) selectedVisible = true;
+    });
+    if (resetInvalid && !selectedVisible) select.value = "";
+  };
+
+  const refreshCompany = (reset = false) => {
+    const companyID = company?.value ?? "";
+    const groupID = selectedData(company, "group");
+    filter(branch, (option) => option.dataset.parent === companyID, reset);
+    filter(department, (option) => option.dataset.group === groupID, reset);
+    filter(type, (option) => option.dataset.group === groupID, reset);
+    filter(brand, (option) => option.dataset.group === groupID, reset);
+    refreshBranch(reset);
+    refreshType(reset);
+  };
+  const refreshBranch = (reset = false) => {
+    const branchID = branch?.value ?? "";
+    filter(location, (option) => option.dataset.parent === branchID, reset);
+  };
+  const refreshType = (reset = false) => {
+    const typeID = type?.value ?? "";
+    const groupID = selectedData(company, "group");
+    filter(model, (option) => option.dataset.parent === typeID && option.dataset.group === groupID, reset);
+    refreshModel(reset);
+  };
+  const refreshModel = (reset = false) => {
+    const modelID = model?.value ?? "";
+    filter(variant, (option) => option.dataset.parent === modelID, reset);
+  };
+
+  company?.addEventListener("change", () => refreshCompany(true));
+  branch?.addEventListener("change", () => refreshBranch(true));
+  type?.addEventListener("change", () => refreshType(true));
+  model?.addEventListener("change", () => refreshModel(true));
+  refreshCompany(false);
+}
+
+initializeAssetForm();

@@ -35,6 +35,30 @@ func (h *Handler) Index(c *gin.Context) {
 	h.render(c, http.StatusOK, "assetregistry/index.html", gin.H{"Title": "Data Aset", "Section": "Manajemen Aset", "Assets": assets, "Summary": Summarize(assets)})
 }
 
+func (h *Handler) New(c *gin.Context) {
+	options, err := h.service.FormOptions(c.Request.Context())
+	if err != nil {
+		h.fail(c, err)
+		return
+	}
+	h.render(c, http.StatusOK, "assetregistry/form.html", gin.H{"Title": "Tambah Aset", "Section": "Data Aset", "Options": options, "Input": AssetInput{}})
+}
+
+func (h *Handler) Create(c *gin.Context) {
+	input := assetInput(c)
+	id, err := h.service.Create(c.Request.Context(), input)
+	if err == nil {
+		c.Redirect(http.StatusSeeOther, fmt.Sprintf("/assets/%d", id))
+		return
+	}
+	options, loadErr := h.service.FormOptions(c.Request.Context())
+	if loadErr != nil {
+		h.fail(c, loadErr)
+		return
+	}
+	h.render(c, http.StatusUnprocessableEntity, "assetregistry/form.html", gin.H{"Title": "Tambah Aset", "Section": "Data Aset", "Options": options, "Input": input, "ErrorMessage": err.Error()})
+}
+
 func (h *Handler) Detail(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil || id == 0 {
@@ -124,4 +148,19 @@ func initials(name string) string {
 		x += string([]rune(strings.ToUpper(p[len(p)-1]))[0])
 	}
 	return x
+}
+
+func assetInput(c *gin.Context) AssetInput {
+	return AssetInput{
+		CompanyID: u64(c.PostForm("company_id")), BranchID: u64(c.PostForm("branch_id")), DepartmentID: u64(c.PostForm("department_id")), LocationID: u64(c.PostForm("asset_location_id")),
+		TypeID: u64(c.PostForm("asset_type_id")), BrandID: u64(c.PostForm("asset_brand_id")), ModelID: u64(c.PostForm("asset_model_id")), VariantID: u64(c.PostForm("asset_variant_id")),
+		ConditionID: u64(c.PostForm("condition_id")), StatusID: u64(c.PostForm("status_id")), VendorID: u64(c.PostForm("vendor_id")),
+		AssetNumber: c.PostForm("asset_number"), Name: c.PostForm("name"), SerialNumber: c.PostForm("serial_number"), Barcode: c.PostForm("barcode"), Description: c.PostForm("description"),
+		AcquisitionDate: c.PostForm("acquisition_date"), AcquisitionCost: c.PostForm("acquisition_cost"), WarrantyUntil: c.PostForm("warranty_until"), Notes: c.PostForm("notes"),
+	}
+}
+
+func u64(value string) uint64 {
+	n, _ := strconv.ParseUint(value, 10, 64)
+	return n
 }
