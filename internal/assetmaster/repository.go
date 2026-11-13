@@ -3,6 +3,7 @@ package assetmaster
 import (
 	"context"
 	"database/sql"
+	"strings"
 )
 
 type Repository struct{ db *sql.DB }
@@ -10,19 +11,22 @@ type Repository struct{ db *sql.DB }
 func NewRepository(db *sql.DB) *Repository { return &Repository{db: db} }
 
 func (r *Repository) Groups(ctx context.Context) ([]Option, error) {
-	return r.options(ctx, `SELECT id,id,name,name FROM company_groups WHERE is_active=1 ORDER BY name`)
+	return r.options(ctx, `SELECT id,id,0,name,name FROM company_groups WHERE is_active=1 ORDER BY name`)
 }
 func (r *Repository) Categories(ctx context.Context) ([]Option, error) {
-	return r.options(ctx, `SELECT c.id,c.group_id,c.name,g.name FROM asset_categories c JOIN company_groups g ON g.id=c.group_id WHERE c.is_active=1 ORDER BY g.name,c.name`)
+	return r.options(ctx, `SELECT c.id,c.group_id,0,c.name,g.name FROM asset_categories c JOIN company_groups g ON g.id=c.group_id WHERE c.is_active=1 ORDER BY g.name,c.name`)
 }
 func (r *Repository) Types(ctx context.Context) ([]Option, error) {
-	return r.options(ctx, `SELECT t.id,c.group_id,t.name,g.name FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id WHERE t.is_active=1 ORDER BY g.name,t.name`)
+	return r.options(ctx, `SELECT t.id,c.group_id,0,t.name,g.name FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id WHERE t.is_active=1 ORDER BY g.name,t.name`)
 }
 func (r *Repository) Brands(ctx context.Context) ([]Option, error) {
-	return r.options(ctx, `SELECT b.id,b.group_id,b.name,g.name FROM asset_brands b JOIN company_groups g ON g.id=b.group_id WHERE b.is_active=1 ORDER BY g.name,b.name`)
+	return r.options(ctx, `SELECT b.id,b.group_id,0,b.name,g.name FROM asset_brands b JOIN company_groups g ON g.id=b.group_id WHERE b.is_active=1 ORDER BY g.name,b.name`)
+}
+func (r *Repository) TypeBrands(ctx context.Context) ([]Option, error) {
+	return r.options(ctx, `SELECT b.id,b.group_id,tb.asset_type_id,b.name,g.name FROM asset_type_brands tb JOIN asset_brands b ON b.id=tb.asset_brand_id JOIN company_groups g ON g.id=b.group_id WHERE b.is_active=1 ORDER BY g.name,b.name`)
 }
 func (r *Repository) Models(ctx context.Context) ([]Option, error) {
-	return r.options(ctx, `SELECT m.id,c.group_id,m.name,g.name FROM asset_models m JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id WHERE m.is_active=1 ORDER BY g.name,m.name`)
+	return r.options(ctx, `SELECT m.id,c.group_id,0,m.name,g.name FROM asset_models m JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id WHERE m.is_active=1 ORDER BY g.name,m.name`)
 }
 func (r *Repository) options(ctx context.Context, query string) ([]Option, error) {
 	rows, err := r.db.QueryContext(ctx, query)
@@ -33,7 +37,7 @@ func (r *Repository) options(ctx context.Context, query string) ([]Option, error
 	var items []Option
 	for rows.Next() {
 		var x Option
-		if err := rows.Scan(&x.ID, &x.GroupID, &x.Name, &x.GroupName); err != nil {
+		if err := rows.Scan(&x.ID, &x.GroupID, &x.ParentID, &x.Name, &x.GroupName); err != nil {
 			return nil, err
 		}
 		items = append(items, x)
@@ -53,7 +57,7 @@ func (r *Repository) RelationsValid(ctx context.Context, kind string, x Input) (
 		if x.BrandID == 0 {
 			err = r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM asset_types WHERE id=?`, x.ParentID).Scan(&count)
 		} else {
-			err = r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id JOIN asset_brands b ON b.id=? AND b.group_id=c.group_id WHERE t.id=?`, x.BrandID, x.ParentID).Scan(&count)
+			err = r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM asset_type_brands WHERE asset_type_id=? AND asset_brand_id=?`, x.ParentID, x.BrandID).Scan(&count)
 		}
 	case "variants":
 		err = r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM asset_models WHERE id=?`, x.ParentID).Scan(&count)
@@ -65,11 +69,11 @@ func (r *Repository) RelationsValid(ctx context.Context, kind string, x Input) (
 
 func (r *Repository) Items(ctx context.Context, kind string) ([]Item, error) {
 	queries := map[string]string{
-		"categories": `SELECT x.id,x.group_id,0,0,g.name,'','',x.code,x.name,COALESCE(x.description,''),x.is_active FROM asset_categories x JOIN company_groups g ON g.id=x.group_id ORDER BY g.name,x.name`,
-		"types":      `SELECT x.id,c.group_id,x.asset_category_id,0,g.name,c.name,'',x.code,x.name,COALESCE(x.description,''),x.is_active FROM asset_types x JOIN asset_categories c ON c.id=x.asset_category_id JOIN company_groups g ON g.id=c.group_id ORDER BY g.name,c.name,x.name`,
-		"brands":     `SELECT x.id,x.group_id,0,0,g.name,'','',x.code,x.name,COALESCE(x.description,''),x.is_active FROM asset_brands x JOIN company_groups g ON g.id=x.group_id ORDER BY g.name,x.name`,
-		"models":     `SELECT x.id,c.group_id,x.asset_type_id,COALESCE(x.asset_brand_id,0),g.name,t.name,COALESCE(b.name,''),x.code,x.name,COALESCE(x.description,''),x.is_active FROM asset_models x JOIN asset_types t ON t.id=x.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id LEFT JOIN asset_brands b ON b.id=x.asset_brand_id ORDER BY g.name,t.name,x.name`,
-		"variants":   `SELECT x.id,c.group_id,x.asset_model_id,0,g.name,m.name,'',x.code,x.name,COALESCE(x.description,''),x.is_active FROM asset_variants x JOIN asset_models m ON m.id=x.asset_model_id JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id ORDER BY g.name,m.name,x.name`,
+		"categories": `SELECT x.id,x.group_id,0,0,g.name,'','',x.code,x.name,COALESCE(x.description,''),'',x.is_active FROM asset_categories x JOIN company_groups g ON g.id=x.group_id ORDER BY g.name,x.name`,
+		"types":      `SELECT x.id,c.group_id,x.asset_category_id,0,g.name,c.name,COALESCE(GROUP_CONCAT(b.name ORDER BY b.name SEPARATOR ', '),''),x.code,x.name,COALESCE(x.description,''),COALESCE(GROUP_CONCAT(b.id ORDER BY b.name),''),x.is_active FROM asset_types x JOIN asset_categories c ON c.id=x.asset_category_id JOIN company_groups g ON g.id=c.group_id LEFT JOIN asset_type_brands tb ON tb.asset_type_id=x.id LEFT JOIN asset_brands b ON b.id=tb.asset_brand_id GROUP BY x.id,c.group_id,x.asset_category_id,g.name,c.name,x.code,x.name,x.description,x.is_active ORDER BY g.name,c.name,x.name`,
+		"brands":     `SELECT x.id,x.group_id,0,0,g.name,'','',x.code,x.name,COALESCE(x.description,''),'',x.is_active FROM asset_brands x JOIN company_groups g ON g.id=x.group_id ORDER BY g.name,x.name`,
+		"models":     `SELECT x.id,c.group_id,x.asset_type_id,COALESCE(x.asset_brand_id,0),g.name,t.name,COALESCE(b.name,''),x.code,x.name,COALESCE(x.description,''),'',x.is_active FROM asset_models x JOIN asset_types t ON t.id=x.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id LEFT JOIN asset_brands b ON b.id=x.asset_brand_id ORDER BY g.name,t.name,x.name`,
+		"variants":   `SELECT x.id,c.group_id,x.asset_model_id,0,g.name,m.name,'',x.code,x.name,COALESCE(x.description,''),'',x.is_active FROM asset_variants x JOIN asset_models m ON m.id=x.asset_model_id JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_categories c ON c.id=t.asset_category_id JOIN company_groups g ON g.id=c.group_id ORDER BY g.name,m.name,x.name`,
 	}
 	query, ok := queries[kind]
 	if !ok {
@@ -83,12 +87,73 @@ func (r *Repository) Items(ctx context.Context, kind string) ([]Item, error) {
 	var items []Item
 	for rows.Next() {
 		var x Item
-		if err := rows.Scan(&x.ID, &x.GroupID, &x.ParentID, &x.BrandID, &x.GroupName, &x.ParentName, &x.BrandName, &x.Code, &x.Name, &x.Description, &x.IsActive); err != nil {
+		if err := rows.Scan(&x.ID, &x.GroupID, &x.ParentID, &x.BrandID, &x.GroupName, &x.ParentName, &x.BrandName, &x.Code, &x.Name, &x.Description, &x.BrandIDs, &x.IsActive); err != nil {
 			return nil, err
 		}
 		items = append(items, x)
 	}
 	return items, rows.Err()
+}
+
+func (r *Repository) ReplaceTypeBrands(ctx context.Context, typeID uint64, brandIDs []uint64) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var groupID uint64
+	if err := tx.QueryRowContext(ctx, `SELECT c.group_id FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id WHERE t.id=? FOR UPDATE`, typeID).Scan(&groupID); err != nil {
+		return err
+	}
+	if len(brandIDs) > 0 {
+		placeholders := make([]string, len(brandIDs))
+		args := make([]any, 0, len(brandIDs)+1)
+		args = append(args, groupID)
+		for i, id := range brandIDs {
+			placeholders[i] = "?"
+			args = append(args, id)
+		}
+		var count int
+		if err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM asset_brands WHERE group_id=? AND id IN (`+strings.Join(placeholders, ",")+`)`, args...).Scan(&count); err != nil {
+			return err
+		}
+		if count != len(brandIDs) {
+			return ErrInvalid
+		}
+	}
+	selected := make(map[uint64]bool, len(brandIDs))
+	for _, id := range brandIDs {
+		selected[id] = true
+	}
+	usedRows, err := tx.QueryContext(ctx, `SELECT asset_brand_id FROM asset_models WHERE asset_type_id=? AND asset_brand_id IS NOT NULL UNION SELECT asset_brand_id FROM assets WHERE asset_type_id=? AND asset_brand_id IS NOT NULL`, typeID, typeID)
+	if err != nil {
+		return err
+	}
+	for usedRows.Next() {
+		var id uint64
+		if err := usedRows.Scan(&id); err != nil {
+			usedRows.Close()
+			return err
+		}
+		if !selected[id] {
+			usedRows.Close()
+			return ErrInUse
+		}
+	}
+	if err := usedRows.Err(); err != nil {
+		usedRows.Close()
+		return err
+	}
+	usedRows.Close()
+	if _, err := tx.ExecContext(ctx, `DELETE FROM asset_type_brands WHERE asset_type_id=?`, typeID); err != nil {
+		return err
+	}
+	for _, brandID := range brandIDs {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO asset_type_brands(asset_type_id,asset_brand_id) VALUES(?,?)`, typeID, brandID); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (r *Repository) Create(ctx context.Context, kind string, x Input) error {

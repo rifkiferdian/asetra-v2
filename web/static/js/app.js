@@ -451,21 +451,42 @@ document.querySelectorAll("[data-edit-asset-org]").forEach((button) => {
   });
 });
 
+document.querySelectorAll("[data-edit-type-brands]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const dialog = document.getElementById(button.dataset.dialog);
+    const form = dialog?.querySelector("[data-type-brands-form]");
+    if (!dialog || !form) return;
+    form.action = button.dataset.action ?? "";
+    const selected = new Set((button.dataset.brandIds ?? "").split(",").filter(Boolean));
+    dialog.querySelector("[data-type-brands-name]").textContent = button.dataset.name ?? "";
+    dialog.querySelectorAll("[data-type-brand-option]").forEach((option) => {
+      const visible = option.dataset.groupId === button.dataset.groupId;
+      option.classList.toggle("hidden", !visible);
+      const checkbox = option.querySelector('input[type="checkbox"]');
+      checkbox.disabled = !visible;
+      checkbox.checked = visible && selected.has(checkbox.value);
+    });
+    dialog.showModal();
+  });
+});
+
 document.querySelectorAll("#createAssetMasterDialog form, #editAssetMasterDialog form").forEach((form) => {
   const group = form.elements.group_id;
   const filterRelations = () => {
     const relationGroup = group?.value || form.elements.parent_id?.selectedOptions[0]?.dataset.groupId || "";
+    const relationParent = form.elements.parent_id?.value || "";
     [form.elements.parent_id, form.elements.brand_id].filter(Boolean).forEach((select) => {
       const selected = select.value;
       [...select.options].forEach((option) => {
-        const visible = select === form.elements.parent_id && !group
-          ? true
-          : !option.dataset.groupId || option.dataset.groupId === relationGroup;
+        const groupMatches = !option.dataset.groupId || option.dataset.groupId === relationGroup;
+        const parentMatches = !option.dataset.parentId || option.dataset.parentId === relationParent;
+        const visible = select === form.elements.parent_id && !group ? true : groupMatches && parentMatches;
         option.hidden = !visible;
         option.disabled = !visible;
       });
-      if (select.selectedOptions[0]?.disabled) select.value = select.name === "brand_id" ? "0" : "";
-      else select.value = selected;
+      const preserved = [...select.options].find((option) => option.value === selected && !option.disabled);
+      if (preserved) preserved.selected = true;
+      else select.value = "";
     });
   };
   group?.addEventListener("change", filterRelations);
@@ -1248,7 +1269,6 @@ function initializeAssetForm() {
     filter(branch, (option) => option.dataset.parent === companyID, reset);
     filter(department, (option) => option.dataset.group === groupID, reset);
     filter(type, (option) => option.dataset.group === groupID, reset);
-    filter(brand, (option) => option.dataset.group === groupID, reset);
     refreshBranch(reset);
     refreshType(reset);
   };
@@ -1258,8 +1278,13 @@ function initializeAssetForm() {
   };
   const refreshType = (reset = false) => {
     const typeID = type?.value ?? "";
-    const groupID = selectedData(company, "group");
-    filter(model, (option) => option.dataset.parent === typeID && option.dataset.group === groupID, reset);
+    filter(brand, (option) => option.dataset.parent === typeID, reset);
+    refreshBrand(reset);
+  };
+  const refreshBrand = (reset = false) => {
+    const typeID = type?.value ?? "";
+    const brandID = brand?.value ?? "";
+    filter(model, (option) => option.dataset.parent === typeID && option.dataset.brand === brandID, reset);
     refreshModel(reset);
   };
   const refreshModel = (reset = false) => {
@@ -1309,7 +1334,7 @@ function initializeAssetForm() {
   company?.addEventListener("change", () => { refreshCompany(true); refreshAutomation(); });
   branch?.addEventListener("change", () => refreshBranch(true));
   type?.addEventListener("change", () => { refreshType(true); refreshAutomation(); });
-  brand?.addEventListener("change", refreshAutomation);
+  brand?.addEventListener("change", () => { refreshBrand(true); refreshAutomation(); });
   model?.addEventListener("change", () => { refreshModel(true); refreshAutomation(); });
   variant?.addEventListener("change", refreshAutomation);
   acquisitionDate?.addEventListener("change", refreshAutomation);

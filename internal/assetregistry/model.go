@@ -29,11 +29,12 @@ type DepreciationDetail struct {
 }
 
 type FormOption struct {
-	ID       uint64
-	ParentID uint64
-	GroupID  uint64
-	Code     string
-	Label    string
+	ID        uint64
+	ParentID  uint64
+	GroupID   uint64
+	RelatedID uint64
+	Code      string
+	Label     string
 }
 
 type DepreciationPreview struct {

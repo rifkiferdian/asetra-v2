@@ -59,7 +59,12 @@ func (h *Handler) Index(c *gin.Context) {
 		h.fail(c, err)
 		return
 	}
-	h.render(c, page.ActivePage, gin.H{"Title": page.Title, "Single": page.Single, "Kind": kind, "ParentLabel": page.ParentLabel, "Items": items, "Groups": groups, "Parents": parents, "Brands": brands})
+	typeBrands, err := h.service.TypeBrands(c.Request.Context())
+	if err != nil {
+		h.fail(c, err)
+		return
+	}
+	h.render(c, page.ActivePage, gin.H{"Title": page.Title, "Single": page.Single, "Kind": kind, "ParentLabel": page.ParentLabel, "Items": items, "Groups": groups, "Parents": parents, "Brands": brands, "TypeBrands": typeBrands})
 }
 func (h *Handler) Create(c *gin.Context) { h.mutate(c, 0) }
 func (h *Handler) Update(c *gin.Context) {
@@ -100,6 +105,28 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 	h.result(c, h.service.Delete(c.Request.Context(), pageKind(c), id), "deleted")
+}
+func (h *Handler) UpdateTypeBrands(c *gin.Context) {
+	if !auth.ValidCSRF(c, c.PostForm("csrf_token")) {
+		h.redirect(c, "error", "csrf")
+		return
+	}
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil || id == 0 {
+		h.redirect(c, "error", "invalid")
+		return
+	}
+	values := c.PostFormArray("brand_ids")
+	brandIDs := make([]uint64, 0, len(values))
+	for _, value := range values {
+		parsed, parseErr := strconv.ParseUint(value, 10, 64)
+		if parseErr != nil {
+			h.redirect(c, "error", "invalid")
+			return
+		}
+		brandIDs = append(brandIDs, parsed)
+	}
+	h.result(c, h.service.ReplaceTypeBrands(c.Request.Context(), id, brandIDs), "brands-updated")
 }
 func uintForm(c *gin.Context, key string) uint64 {
 	v, _ := strconv.ParseUint(c.PostForm(key), 10, 64)
@@ -174,5 +201,5 @@ func initials(name string) string {
 	return v
 }
 func message(code string) string {
-	return map[string]string{"created": "Data berhasil dibuat.", "updated": "Data berhasil diperbarui.", "deleted": "Data berhasil dihapus.", "csrf": "Sesi form berakhir. Silakan muat ulang halaman.", "invalid": "Data belum lengkap atau tidak valid.", "duplicate": "Kode sudah digunakan dalam company group tersebut.", "in-use": "Relasi data tidak valid atau data masih digunakan.", "not-found": "Data tidak ditemukan.", "failed": "Operasi gagal diproses."}[code]
+	return map[string]string{"created": "Data berhasil dibuat.", "updated": "Data berhasil diperbarui.", "deleted": "Data berhasil dihapus.", "brands-updated": "Relasi brand untuk tipe aset berhasil diperbarui.", "csrf": "Sesi form berakhir. Silakan muat ulang halaman.", "invalid": "Data belum lengkap atau tidak valid.", "duplicate": "Kode sudah digunakan dalam company group tersebut.", "in-use": "Relasi data tidak valid atau data masih digunakan.", "not-found": "Data tidak ditemukan.", "failed": "Operasi gagal diproses."}[code]
 }

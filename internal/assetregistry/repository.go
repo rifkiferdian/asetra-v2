@@ -58,17 +58,17 @@ func (r *Repository) FormOptions(ctx context.Context) (AssetFormOptions, error) 
 		destination *[]FormOption
 		query       string
 	}{
-		{&result.Companies, `SELECT id,group_id,0,code,name FROM companies WHERE is_active=1 ORDER BY name`},
-		{&result.Branches, `SELECT id,company_id,0,code,CONCAT(code,' — ',name) FROM branches WHERE is_active=1 ORDER BY name`},
-		{&result.Departments, `SELECT id,0,group_id,code,CONCAT(code,' — ',name) FROM departments WHERE is_active=1 ORDER BY name`},
-		{&result.Locations, `SELECT l.id,l.branch_id,0,l.code,CONCAT(b.code,' / ',l.code,' — ',l.name) FROM asset_locations l JOIN branches b ON b.id=l.branch_id WHERE l.is_active=1 ORDER BY b.name,l.name`},
-		{&result.Types, `SELECT t.id,0,c.group_id,t.code,CONCAT(c.name,' — ',t.name) FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id WHERE t.is_active=1 AND c.is_active=1 ORDER BY c.name,t.name`},
-		{&result.Brands, `SELECT id,0,group_id,code,name FROM asset_brands WHERE is_active=1 ORDER BY name`},
-		{&result.Models, `SELECT m.id,m.asset_type_id,b.group_id,m.code,CONCAT(t.name,' — ',b.name,' ',m.name) FROM asset_models m JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_brands b ON b.id=m.asset_brand_id WHERE m.is_active=1 ORDER BY t.name,m.name`},
-		{&result.Variants, `SELECT v.id,v.asset_model_id,b.group_id,v.code,CONCAT(m.name,' — ',v.name) FROM asset_variants v JOIN asset_models m ON m.id=v.asset_model_id JOIN asset_brands b ON b.id=m.asset_brand_id WHERE v.is_active=1 ORDER BY m.name,v.name`},
-		{&result.Conditions, `SELECT id,0,0,code,name FROM asset_conditions WHERE is_active=1 ORDER BY name`},
-		{&result.Statuses, `SELECT id,0,0,code,name FROM asset_statuses WHERE is_active=1 ORDER BY name`},
-		{&result.Vendors, `SELECT id,0,0,code,name FROM vendors WHERE is_active=1 ORDER BY name`},
+		{&result.Companies, `SELECT id,group_id,0,0,code,name FROM companies WHERE is_active=1 ORDER BY name`},
+		{&result.Branches, `SELECT id,company_id,0,0,code,CONCAT(code,' — ',name) FROM branches WHERE is_active=1 ORDER BY name`},
+		{&result.Departments, `SELECT id,0,group_id,0,code,CONCAT(code,' — ',name) FROM departments WHERE is_active=1 ORDER BY name`},
+		{&result.Locations, `SELECT l.id,l.branch_id,0,0,l.code,CONCAT(b.code,' / ',l.code,' — ',l.name) FROM asset_locations l JOIN branches b ON b.id=l.branch_id WHERE l.is_active=1 ORDER BY b.name,l.name`},
+		{&result.Types, `SELECT t.id,0,c.group_id,0,t.code,CONCAT(c.name,' — ',t.name) FROM asset_types t JOIN asset_categories c ON c.id=t.asset_category_id WHERE t.is_active=1 AND c.is_active=1 ORDER BY c.name,t.name`},
+		{&result.Brands, `SELECT b.id,tb.asset_type_id,b.group_id,0,b.code,b.name FROM asset_type_brands tb JOIN asset_brands b ON b.id=tb.asset_brand_id WHERE b.is_active=1 ORDER BY b.name`},
+		{&result.Models, `SELECT m.id,m.asset_type_id,b.group_id,m.asset_brand_id,m.code,CONCAT(t.name,' — ',b.name,' ',m.name) FROM asset_models m JOIN asset_types t ON t.id=m.asset_type_id JOIN asset_brands b ON b.id=m.asset_brand_id JOIN asset_type_brands tb ON tb.asset_type_id=m.asset_type_id AND tb.asset_brand_id=m.asset_brand_id WHERE m.is_active=1 ORDER BY t.name,m.name`},
+		{&result.Variants, `SELECT v.id,v.asset_model_id,b.group_id,0,v.code,CONCAT(m.name,' — ',v.name) FROM asset_variants v JOIN asset_models m ON m.id=v.asset_model_id JOIN asset_brands b ON b.id=m.asset_brand_id WHERE v.is_active=1 ORDER BY m.name,v.name`},
+		{&result.Conditions, `SELECT id,0,0,0,code,name FROM asset_conditions WHERE is_active=1 ORDER BY name`},
+		{&result.Statuses, `SELECT id,0,0,0,code,name FROM asset_statuses WHERE is_active=1 ORDER BY name`},
+		{&result.Vendors, `SELECT id,0,0,0,code,name FROM vendors WHERE is_active=1 ORDER BY name`},
 	}
 	for _, item := range queries {
 		rows, err := r.db.QueryContext(ctx, item.query)
@@ -77,7 +77,7 @@ func (r *Repository) FormOptions(ctx context.Context) (AssetFormOptions, error) 
 		}
 		for rows.Next() {
 			var x FormOption
-			if err := rows.Scan(&x.ID, &x.ParentID, &x.GroupID, &x.Code, &x.Label); err != nil {
+			if err := rows.Scan(&x.ID, &x.ParentID, &x.GroupID, &x.RelatedID, &x.Code, &x.Label); err != nil {
 				rows.Close()
 				return AssetFormOptions{}, err
 			}
@@ -125,7 +125,7 @@ func (r *Repository) Create(ctx context.Context, x AssetInput) (uint64, error) {
 		JOIN asset_conditions cond ON cond.id=? JOIN asset_statuses st ON st.id=?
 		WHERE c.id=?
 		AND (?=0 OR EXISTS(SELECT 1 FROM departments d WHERE d.id=? AND d.group_id=c.group_id))
-		AND (?=0 OR EXISTS(SELECT 1 FROM asset_brands br WHERE br.id=? AND br.group_id=c.group_id))
+		AND (?=0 OR EXISTS(SELECT 1 FROM asset_type_brands tb JOIN asset_brands br ON br.id=tb.asset_brand_id WHERE tb.asset_type_id=t.id AND tb.asset_brand_id=? AND br.group_id=c.group_id))
 		AND (?=0 OR EXISTS(SELECT 1 FROM asset_models m WHERE m.id=? AND m.asset_type_id=t.id AND (?=0 OR m.asset_brand_id=?)))
 		AND (?=0 OR EXISTS(SELECT 1 FROM asset_variants v WHERE v.id=? AND v.asset_model_id=?))
 		AND (?=0 OR EXISTS(SELECT 1 FROM vendors vnd WHERE vnd.id=?))

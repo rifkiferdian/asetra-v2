@@ -35,6 +35,24 @@ func (s *Service) Parents(ctx context.Context, kind string) ([]Option, error) {
 	return nil, nil
 }
 func (s *Service) Brands(ctx context.Context) ([]Option, error) { return s.repository.Brands(ctx) }
+func (s *Service) TypeBrands(ctx context.Context) ([]Option, error) {
+	return s.repository.TypeBrands(ctx)
+}
+func (s *Service) ReplaceTypeBrands(ctx context.Context, typeID uint64, brandIDs []uint64) error {
+	if typeID == 0 {
+		return ErrInvalid
+	}
+	seen := make(map[uint64]bool, len(brandIDs))
+	unique := make([]uint64, 0, len(brandIDs))
+	for _, id := range brandIDs {
+		if id == 0 || seen[id] {
+			continue
+		}
+		seen[id] = true
+		unique = append(unique, id)
+	}
+	return mapDB(s.repository.ReplaceTypeBrands(ctx, typeID, unique))
+}
 func (s *Service) Create(ctx context.Context, kind string, x Input) error {
 	x = normalize(x)
 	if !valid(kind, x) {
@@ -81,6 +99,9 @@ func valid(kind string, x Input) bool {
 	}
 	if kind == "categories" || kind == "brands" {
 		return x.GroupID > 0
+	}
+	if kind == "models" {
+		return x.ParentID > 0 && x.BrandID > 0
 	}
 	return (kind == "types" || kind == "models" || kind == "variants") && x.ParentID > 0
 }
