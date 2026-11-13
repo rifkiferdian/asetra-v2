@@ -12,6 +12,7 @@ import (
 	"asetra/internal/assessmentcriterion"
 	"asetra/internal/assessmentreport"
 	"asetra/internal/assessmentrule"
+	"asetra/internal/assetdepreciation"
 	"asetra/internal/assetlocationreport"
 	"asetra/internal/assetmaster"
 	"asetra/internal/assetorganization"
@@ -106,6 +107,7 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		assessmentReportHandler := assessmentreport.NewHandler(cfg.AppName, assessmentReportService, navigationService)
 		assetOrganizationHandler := assetorganization.NewHandler(cfg.AppName, assetorganization.NewService(assetorganization.NewRepository(db)), navigationService)
 		assetRegistryHandler := assetregistry.NewHandler(cfg.AppName, assetregistry.NewService(assetregistry.NewRepository(db)), navigationService)
+		assetDepreciationHandler := assetdepreciation.NewHandler(cfg.AppName, assetdepreciation.NewService(assetdepreciation.NewRepository(db)), navigationService)
 		assetLocationReportHandler := assetlocationreport.NewHandler(cfg.AppName, assetlocationreport.NewService(assetlocationreport.NewRepository(db)), navigationService)
 		assetMasterHandler := assetmaster.NewHandler(cfg.AppName, assetmaster.NewService(assetmaster.NewRepository(db)), navigationService)
 		supportMasterHandler := supportmaster.NewHandler(cfg.AppName, supportmaster.NewService(supportmaster.NewRepository(db)), navigationService)
@@ -117,6 +119,8 @@ func New(cfg config.Config, db *sql.DB, webRoot string) (*gin.Engine, error) {
 		authorized.GET("/assets", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Index)
 		authorized.GET("/assets/:id", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.Detail)
 		authorized.GET("/assets/:id/qr", auth.RequirePermission(db, "assets.view"), assetRegistryHandler.QRCode)
+		authorized.GET("/asset-depreciations", auth.RequirePermission(db, "asset_depreciations.view"), assetDepreciationHandler.Index)
+		authorized.POST("/asset-depreciations/:id/post", auth.RequirePermission(db, "asset_depreciations.create"), assetDepreciationHandler.Post)
 		authorized.GET("/reports/assets-by-location", auth.RequirePermission(db, "assets.view"), assetLocationReportHandler.Index)
 		authorized.GET("/reports/assets-by-location/:id", auth.RequirePermission(db, "assets.view"), assetLocationReportHandler.Detail)
 		authorized.GET("/reports/assets-by-location/:id/qr", auth.RequirePermission(db, "assets.view"), assetLocationReportHandler.QRCode)
