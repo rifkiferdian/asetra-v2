@@ -10,7 +10,7 @@ type Repository struct{ db *sql.DB }
 func NewRepository(db *sql.DB) *Repository { return &Repository{db: db} }
 
 func (r *Repository) List(ctx context.Context) ([]Asset, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT l.id,COALESCE(a.id,0),COALESCE(COALESCE(NULLIF(CONCAT_WS(' ',NULLIF(br.name,''),NULLIF(m.name,''),NULLIF(vr.name,'')),''),t.name),''),COALESCE(t.name,''),
+	rows, err := r.db.QueryContext(ctx, `SELECT l.id,COALESCE(a.id,0),COALESCE(a.asset_number,''),COALESCE(COALESCE(NULLIF(CONCAT_WS(' ',NULLIF(br.name,''),NULLIF(m.name,''),NULLIF(vr.name,'')),''),t.name),''),COALESCE(t.name,''),
 		COALESCE(br.name,''),COALESCE(m.name,''),COALESCE(cond.name,''),COALESCE(st.name,''),b.name,
 		COALESCE(parent.name,l.name),CASE WHEN parent.id IS NULL THEN 'Area Utama' ELSE l.name END
 		FROM asset_locations l
