@@ -27,6 +27,9 @@ func (s *Service) List(ctx context.Context) ([]Asset, error) {
 	for i := range assets {
 		assets[i].BrandName = ""
 		assets[i].ModelName = ""
+		if cost, parseErr := strconv.ParseFloat(assets[i].AcquisitionCost, 64); parseErr == nil {
+			assets[i].AcquisitionCost = strings.TrimPrefix(rupiah(cost), "Rp")
+		}
 	}
 	return assets, nil
 }
