@@ -168,7 +168,7 @@ func assetInput(c *gin.Context) AssetInput {
 		CompanyID: u64(c.PostForm("company_id")), BranchID: u64(c.PostForm("branch_id")), DepartmentID: u64(c.PostForm("department_id")), LocationID: u64(c.PostForm("asset_location_id")),
 		TypeID: u64(c.PostForm("asset_type_id")), BrandID: u64(c.PostForm("asset_brand_id")), ModelID: u64(c.PostForm("asset_model_id")), VariantID: u64(c.PostForm("asset_variant_id")),
 		ConditionID: u64(c.PostForm("condition_id")), StatusID: u64(c.PostForm("status_id")), VendorID: u64(c.PostForm("vendor_id")),
-		AssetNumber: c.PostForm("asset_number"), Name: c.PostForm("name"), SerialNumber: c.PostForm("serial_number"), Barcode: c.PostForm("barcode"), Description: c.PostForm("description"),
+		AssetNumber: c.PostForm("asset_number"), SerialNumber: c.PostForm("serial_number"), Barcode: c.PostForm("barcode"), Description: c.PostForm("description"),
 		AcquisitionDate: c.PostForm("acquisition_date"), AcquisitionCost: c.PostForm("acquisition_cost"), WarrantyUntil: c.PostForm("warranty_until"), Notes: c.PostForm("notes"),
 	}
 }

@@ -1255,20 +1255,14 @@ function initializeAssetForm() {
   const model = form.querySelector("[data-asset-model]");
   const variant = form.querySelector("[data-asset-variant]");
   const acquisitionDate = form.querySelector("[data-asset-acquisition-date]");
-  const assetName = form.querySelector("[data-asset-name]");
+  const assetNamePreview = form.querySelector("[data-asset-name-preview]");
+  const assetTypePreview = form.querySelector("[data-asset-type-preview]");
   const numberPreview = form.querySelector("[data-asset-number-preview]");
   const barcodePreview = form.querySelector("[data-asset-barcode-preview]");
   const policies = Array.from(document.querySelectorAll("[data-depreciation-policies] [data-policy]"));
   const policyEmpty = form.querySelector("[data-policy-empty]");
   const policyResult = form.querySelector("[data-policy-result]");
-  let nameEdited = (assetName?.value ?? "").trim() !== "";
-
   const selectedData = (select, key) => select?.selectedOptions[0]?.dataset[key] ?? "";
-  const selectedLabel = (select) => {
-    const label = select?.selectedOptions[0]?.textContent?.trim() ?? "";
-    const parts = label.split(" — ");
-    return parts[parts.length - 1] ?? "";
-  };
   const filter = (select, predicate, resetInvalid = false) => {
     if (!select) return;
     let selectedVisible = select.value === "";
@@ -1324,13 +1318,12 @@ function initializeAssetForm() {
       if (barcodePreview) barcodePreview.textContent = "Dibuat dari nomor aset";
     }
 
-    if (!nameEdited && assetName) {
-      const typeName = selectedLabel(type);
-      const modelName = selectedLabel(model);
-      const brandName = selectedLabel(brand);
-      const variantName = selectedLabel(variant);
-      assetName.value = [typeName, modelName || brandName, variantName].filter(Boolean).join(" — ");
-    }
+    const automaticName = [brand, model, variant]
+      .map((select) => selectedData(select, "name"))
+      .filter(Boolean)
+      .join(" ");
+    if (assetNamePreview) assetNamePreview.textContent = automaticName || selectedData(type, "name") || "Pilih tipe aset";
+    if (assetTypePreview) assetTypePreview.textContent = `Tipe: ${selectedData(type, "name") || "—"}`;
 
     const companyID = company?.value ?? "";
     const groupID = selectedData(company, "group");
@@ -1357,7 +1350,6 @@ function initializeAssetForm() {
   model?.addEventListener("change", () => { refreshModel(true); refreshAutomation(); });
   variant?.addEventListener("change", refreshAutomation);
   acquisitionDate?.addEventListener("change", refreshAutomation);
-  assetName?.addEventListener("input", () => { nameEdited = assetName.value.trim() !== ""; });
   refreshCompany(false);
   refreshAutomation();
 }

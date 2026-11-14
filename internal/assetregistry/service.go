@@ -16,8 +16,20 @@ import (
 
 type Service struct{ repository *Repository }
 
-func NewService(repository *Repository) *Service             { return &Service{repository: repository} }
-func (s *Service) List(ctx context.Context) ([]Asset, error) { return s.repository.List(ctx) }
+func NewService(repository *Repository) *Service { return &Service{repository: repository} }
+func (s *Service) List(ctx context.Context) ([]Asset, error) {
+	assets, err := s.repository.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Brand dan model sudah menjadi bagian dari nama otomatis, sehingga tidak
+	// perlu ditampilkan ulang sebagai subjudul pada halaman daftar.
+	for i := range assets {
+		assets[i].BrandName = ""
+		assets[i].ModelName = ""
+	}
+	return assets, nil
+}
 func (s *Service) Find(ctx context.Context, id uint64) (Asset, error) {
 	return s.repository.Find(ctx, id)
 }
@@ -28,17 +40,16 @@ func (s *Service) FormOptions(ctx context.Context) (AssetFormOptions, error) {
 
 func (s *Service) Create(ctx context.Context, x AssetInput) (uint64, error) {
 	x.AssetNumber = strings.TrimSpace(x.AssetNumber)
-	x.Name = strings.TrimSpace(x.Name)
 	x.SerialNumber = strings.TrimSpace(x.SerialNumber)
 	x.Barcode = strings.TrimSpace(x.Barcode)
 	x.Description = strings.TrimSpace(x.Description)
 	x.WarrantyUntil = strings.TrimSpace(x.WarrantyUntil)
 	x.Notes = strings.TrimSpace(x.Notes)
-	if x.CompanyID == 0 || x.BranchID == 0 || x.LocationID == 0 || x.TypeID == 0 || x.ConditionID == 0 || x.StatusID == 0 || x.Name == "" {
+	if x.CompanyID == 0 || x.BranchID == 0 || x.LocationID == 0 || x.TypeID == 0 || x.ConditionID == 0 || x.StatusID == 0 {
 		return 0, fmt.Errorf("field wajib belum lengkap")
 	}
-	if len(x.Name) > 200 || len(x.SerialNumber) > 120 {
-		return 0, fmt.Errorf("nama atau serial number terlalu panjang")
+	if len(x.SerialNumber) > 120 {
+		return 0, fmt.Errorf("serial number terlalu panjang")
 	}
 	if (x.ModelID > 0 && x.BrandID == 0) || (x.VariantID > 0 && x.ModelID == 0) {
 		return 0, fmt.Errorf("brand harus dipilih sebelum model, dan model sebelum varian")

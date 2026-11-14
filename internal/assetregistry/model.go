@@ -34,6 +34,7 @@ type FormOption struct {
 	GroupID   uint64
 	RelatedID uint64
 	Code      string
+	Name      string
 	Label     string
 }
 

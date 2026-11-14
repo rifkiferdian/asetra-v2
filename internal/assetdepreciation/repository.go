@@ -29,7 +29,7 @@ func (r *Repository) Companies(ctx context.Context) ([]Company, error) {
 }
 
 func (r *Repository) List(ctx context.Context, companyID uint64, period time.Time) ([]Row, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT a.id,a.asset_number,a.name,c.name,
+	rows, err := r.db.QueryContext(ctx, `SELECT a.id,a.asset_number,COALESCE(NULLIF(CONCAT_WS(' ',NULLIF(br.name,''),NULLIF(m.name,''),NULLIF(vr.name,'')),''),t.name),c.name,
 		DATE_FORMAT(a.acquisition_date,'%Y-%m-%d'),CAST(a.acquisition_cost AS CHAR),
 		p.id,r.useful_life_months,CAST(p.residual_value_percent AS CHAR),
 		CAST(COALESCE(hist.accumulated,0) AS CHAR),
@@ -38,6 +38,10 @@ func (r *Repository) List(ctx context.Context, companyID uint64, period time.Tim
 		COALESCE(CAST(current_period.depreciation_amount AS CHAR),''),COALESCE(DATE_FORMAT(current_period.posted_at,'%Y-%m-%d %H:%i'),'')
 	FROM assets a
 	JOIN companies c ON c.id=a.company_id
+	JOIN asset_types t ON t.id=a.asset_type_id
+	LEFT JOIN asset_brands br ON br.id=a.asset_brand_id
+	LEFT JOIN asset_models m ON m.id=a.asset_model_id
+	LEFT JOIN asset_variants vr ON vr.id=a.asset_variant_id
 	JOIN asset_depreciation_policies p ON p.id=(
 		SELECT p2.id FROM asset_depreciation_policies p2
 		WHERE p2.asset_type_id=a.asset_type_id AND p2.company_group_id=c.group_id
